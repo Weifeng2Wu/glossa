@@ -188,7 +188,7 @@ test("passes bundle configuration as a JSON file and cleans up after success or 
         assert.deepEqual(configuration.bundle.resources, {
           [windowsResourcePattern(tauriDirectory, resources)]: "agent/",
         });
-        assert.deepEqual(configuration.bundle.externalBin, ["binaries/inkwell-node"]);
+        assert.deepEqual(configuration.bundle.externalBin, ["binaries/glossa-node"]);
         assert.equal(configuration.bundle.macOS.entitlements, "Entitlements.plist");
         if (fails) throw new Error("build failed");
         return "built";

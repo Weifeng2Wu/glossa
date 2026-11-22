@@ -458,7 +458,7 @@ export async function prepareRuntime() {
     );
     const executable = path.join(
       binaries,
-      `inkwell-node-${target}${process.platform === "win32" ? ".exe" : ""}`,
+      `glossa-node-${target}${process.platform === "win32" ? ".exe" : ""}`,
     );
     await copyFile(node, executable);
     if (process.platform !== "win32") await chmod(executable, 0o755);

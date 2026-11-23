@@ -192,7 +192,7 @@ export function useExternalAgent({
         saveQueue.current = Promise.resolve();
         if (typeof window !== "undefined")
           window.dispatchEvent(
-            new CustomEvent("inkwell-storage-error", { detail: String(caught) }),
+            new CustomEvent("glossa-storage-error", { detail: String(caught) }),
           );
         setError(errorMessage(caught, translateRef.current));
       }
@@ -226,10 +226,10 @@ export function useExternalAgent({
         })(),
       );
     };
-    window.addEventListener("inkwell-before-close", close);
+    window.addEventListener("glossa-before-close", close);
     return () => {
       window.removeEventListener("pagehide", flush);
-      window.removeEventListener("inkwell-before-close", close);
+      window.removeEventListener("glossa-before-close", close);
     };
   }, [flushHistory]);
 

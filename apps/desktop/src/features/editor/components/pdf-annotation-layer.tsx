@@ -27,7 +27,7 @@ export const PdfAnnotationLayer = memo(function PdfAnnotationLayer({
   return (
     <svg
       aria-hidden="true"
-      className="inkwell-pdf-mark-layer"
+      className="glossa-pdf-mark-layer"
       viewBox="0 0 1 1"
       preserveAspectRatio="none"
     >

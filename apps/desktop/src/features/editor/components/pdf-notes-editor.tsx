@@ -100,10 +100,10 @@ export function PdfNotesEditor({
     const close = (event: Event) => {
       (event as CustomEvent<Promise<unknown>[]>).detail.push(persistRef.current());
     };
-    window.addEventListener("inkwell-before-close", close);
+    window.addEventListener("glossa-before-close", close);
     return () => {
       mounted.current = false;
-      window.removeEventListener("inkwell-before-close", close);
+      window.removeEventListener("glossa-before-close", close);
       if (!draftRef.current.error) void persistRef.current().catch(() => {});
     };
   }, []);

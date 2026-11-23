@@ -69,8 +69,8 @@ describe("Markdown document links", () => {
   it("keeps encoded marker targets intact and rejects malformed markers", () => {
     const transformed = transformWikiLinks("[[a)b(c.md|safe <label>]]");
     expect(transformed).toContain("a%29b%28c.md");
-    expect(wikiLinkTargetFromHref("#inkwell-wiki=%E7%A0%94%E7%A9%B6")).toBe("研究");
-    expect(wikiLinkTargetFromHref("#inkwell-wiki=%ZZ")).toBeUndefined();
+    expect(wikiLinkTargetFromHref("#glossa-wiki=%E7%A0%94%E7%A9%B6")).toBe("研究");
+    expect(wikiLinkTargetFromHref("#glossa-wiki=%ZZ")).toBeUndefined();
     expect(wikiLinkTargetFromHref("https://example.com")).toBeUndefined();
   });
 

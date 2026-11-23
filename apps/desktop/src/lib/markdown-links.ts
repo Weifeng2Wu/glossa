@@ -17,7 +17,7 @@ export type MarkdownLinkKind = "wiki" | "markdown";
 export type DocumentLink = { target: string; label: string; kind: MarkdownLinkKind };
 
 const parser = unified().use(remarkParse).use(remarkGfm).use(remarkMath);
-const wikiPrefix = "#inkwell-wiki=";
+const wikiPrefix = "#glossa-wiki=";
 const excludedTypes = new Set([
   "code",
   "inlineCode",

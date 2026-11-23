@@ -1,31 +1,35 @@
 import { invoke } from "@tauri-apps/api/core";
 
 const keys = new Set([
-  "inkwell-auto-update-v1",
+  "glossa-auto-update-v1",
   "editor-settings",
   "latex-settings",
   "recent-projects",
   "sidebarWidth",
   "rightPanelWidth",
   "terminalHeight",
-  "inkwell-agent-selection-v1",
-  "inkwell-acp-consent-v1",
-  "inkwell-layout-parser-v1",
-  "inkwell-translation-v1",
-  "inkwell-translation-profiles-v1",
-  "inkwell-pdf-color-v1",
-  "inkwell-pdf-position-v1",
-  "inkwell-library-sort-v1",
-  "inkwell-quick-start-v1",
-  "inkwell-keyboard-shortcuts-v1",
-  "inkwell-locale",
+  "glossa-agent-selection-v1",
+  "glossa-acp-consent-v1",
+  "glossa-layout-parser-v1",
+  "glossa-translation-v1",
+  "glossa-translation-profiles-v1",
+  "glossa-pdf-color-v1",
+  "glossa-pdf-position-v1",
+  "glossa-library-sort-v1",
+  "glossa-quick-start-v1",
+  "glossa-keyboard-shortcuts-v1",
+  "glossa-locale",
   "theme",
 ]);
 const prefixes = [
-  "inkwell-agent-config-v1:",
-  "inkwell-external-chat-v1:",
-  "inkwell-conversation-archive-v1:",
+  "glossa-agent-config-v1:",
+  "glossa-external-chat-v1:",
+  "glossa-conversation-archive-v1:",
+  "glossa-library-excluded-pdfs:",
 ];
+function isOwnedStorageKey(key: string) {
+  return keys.has(key) || prefixes.some((prefix) => key.startsWith(prefix));
+}
 const cache = new Map<string, string>();
 const pending = new Map<string, string | null>();
 let initialized = false;
@@ -69,12 +73,7 @@ export async function initializeAppStorage() {
     } catch {}
     for (let index = 0; storage && index < storage.length; index += 1) {
       const key = storage.key(index);
-      if (
-        !key ||
-        migrated.has(key) ||
-        (!keys.has(key) && !prefixes.some((prefix) => key.startsWith(prefix)))
-      )
-        continue;
+      if (!key || migrated.has(key) || !isOwnedStorageKey(key)) continue;
       const value = storage.getItem(key);
       if (value !== null) entries.push([key, value]);
     }
@@ -115,7 +114,7 @@ function scheduleWrite() {
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => {
     void flushAppStorage().catch((error: unknown) => {
-      window.dispatchEvent(new CustomEvent("inkwell-storage-error", { detail: String(error) }));
+      window.dispatchEvent(new CustomEvent("glossa-storage-error", { detail: String(error) }));
     });
   }, 80);
 }

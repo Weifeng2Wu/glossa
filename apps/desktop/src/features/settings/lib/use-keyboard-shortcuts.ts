@@ -12,7 +12,7 @@ import {
   validShortcut,
 } from "./keyboard-shortcuts";
 
-const changed = "inkwell-shortcuts-changed";
+const changed = "glossa-shortcuts-changed";
 let cachedRaw: string | null | undefined;
 let cachedBindings = DEFAULT_SHORTCUTS;
 

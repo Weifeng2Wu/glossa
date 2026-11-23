@@ -112,7 +112,7 @@ test("keyless Transmart sends no browser cookies or borrowed browser credentials
         assert.equal(options.headers.Authorization, undefined);
         const body = JSON.parse(options.body);
         assert.equal(body.header.fn, "auto_translation");
-        assert.match(body.header.client_key, /^inkwell-/);
+        assert.match(body.header.client_key, /^glossa-/);
         assert.deepEqual(body.source, { lang: "en", text_list: ["Hello"] });
         assert.deepEqual(body.target, { lang: "zh" });
         return json({ auto_translation: ["", "你好", ""] });

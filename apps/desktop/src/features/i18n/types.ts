@@ -15,7 +15,7 @@ export const LOCALES: LocaleInfo[] = [
 ];
 
 export const DEFAULT_LOCALE: Locale = "en";
-export const LOCALE_STORAGE_KEY = "inkwell-locale";
+export const LOCALE_STORAGE_KEY = "glossa-locale";
 
 type NestedKeyOf<ObjectType extends object> = {
   [Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object

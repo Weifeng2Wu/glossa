@@ -27,7 +27,7 @@ function pythonEnvironment(temporary) {
     TMPDIR: temporary,
     TMP: temporary,
     TEMP: temporary,
-    INKWELL_PYTHON_WORK: temporary,
+    GLOSSA_PYTHON_WORK: temporary,
   };
 }
 
@@ -133,7 +133,7 @@ export function createPythonTool(project, permissionMode, approve, selection) {
         code: {
           type: "string",
           description:
-            "Python source; mutually exclusive with skillId/script. Use os.environ['INKWELL_PYTHON_WORK'] for temporary files.",
+            "Python source; mutually exclusive with skillId/script. Use os.environ['GLOSSA_PYTHON_WORK'] for temporary files.",
           maxLength: MAX_CODE,
         },
         skillId: {
@@ -179,7 +179,7 @@ export function createPythonTool(project, permissionMode, approve, selection) {
       )
         throw new Error("Invalid Python arguments or timeout.");
       signal?.throwIfAborted();
-      const temporary = await mkdtemp(path.join(os.tmpdir(), "inkwell-python-"));
+      const temporary = await mkdtemp(path.join(os.tmpdir(), "glossa-python-"));
       try {
         let filename = path.join(temporary, "main.py");
         if (inline) await writeFile(filename, code, { mode: 0o600 });

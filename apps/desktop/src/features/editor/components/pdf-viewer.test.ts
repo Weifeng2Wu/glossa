@@ -588,7 +588,7 @@ describe("PDF reading interactions", () => {
   it("waits for pending note writes before the app closes", async () => {
     await render();
     const tasks: Promise<unknown>[] = [];
-    window.dispatchEvent(new CustomEvent("inkwell-before-close", { detail: tasks }));
+    window.dispatchEvent(new CustomEvent("glossa-before-close", { detail: tasks }));
     expect(tasks).toHaveLength(1);
     await expect(Promise.all(tasks)).resolves.toEqual([undefined]);
   });
@@ -772,7 +772,7 @@ function stackPages() {
     const scrolled = scroller?.scrollTop ?? 0;
     const page = Number(this.getAttribute("data-pdf-page") ?? 0);
     if (page) return new DOMRect(0, (page - 1) * 800 - scrolled, 612, 792);
-    if (!this.classList.contains("inkwell-pdf-search-hit")) return new DOMRect(0, 0, 612, 600);
+    if (!this.classList.contains("glossa-pdf-search-hit")) return new DOMRect(0, 0, 612, 600);
     const owner = Number(this.closest("[data-pdf-page]")?.getAttribute("data-pdf-page") ?? 1);
     return new DOMRect(72, (owner - 1) * 800 + 100 - scrolled, 150, 20);
   });
@@ -997,7 +997,7 @@ describe("PDF reading position", () => {
 
   it("reopens a PDF on its last page and zoom", async () => {
     stackPages();
-    localStorage.setItem("inkwell-pdf-position-v1", stored(2));
+    localStorage.setItem("glossa-pdf-position-v1", stored(2));
     await render();
     expect(field("pdfReading.pageNumber").value).toBe("2");
     expect(container.querySelector<HTMLElement>("[data-pdf-scroll]")?.scrollTop).toBe(792);
@@ -1007,7 +1007,7 @@ describe("PDF reading position", () => {
 
   it("restores only the zoom of a compiled preview", async () => {
     stackPages();
-    localStorage.setItem("inkwell-pdf-position-v1", stored(2));
+    localStorage.setItem("glossa-pdf-position-v1", stored(2));
     await render({ compiledPreview: true });
     expect(field("pdfReading.pageNumber").value).toBe("1");
     expect(container.querySelector<HTMLElement>("[data-pdf-scroll]")?.scrollTop).toBe(0);
@@ -1019,11 +1019,11 @@ describe("PDF reading position", () => {
     await render();
     await click(button("pdfReading.nextPage"));
     await click(button("editor.zoomIn"));
-    expect(localStorage.getItem("inkwell-pdf-position-v1")).toBeNull();
+    expect(localStorage.getItem("glossa-pdf-position-v1")).toBeNull();
     await act(async () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 560));
     });
-    expect(JSON.parse(localStorage.getItem("inkwell-pdf-position-v1") ?? "{}")).toEqual({
+    expect(JSON.parse(localStorage.getItem("glossa-pdf-position-v1") ?? "{}")).toEqual({
       [`/project\n${pdfPath}`]: { page: 2, scale: 1.25, fitWidth: false },
     });
   });
@@ -1036,7 +1036,7 @@ describe("PDF reading position", () => {
       root.unmount();
       root = createRoot(container);
     });
-    expect(localStorage.getItem("inkwell-pdf-position-v1")).toContain('"page":2');
+    expect(localStorage.getItem("glossa-pdf-position-v1")).toContain('"page":2');
   });
 });
 
@@ -1066,7 +1066,7 @@ describe("PDF find", () => {
     await settle();
     expect(status()).toBe("1 / 2");
     expect(mock.getTextContent).toHaveBeenCalledTimes(2);
-    expect(container.querySelectorAll(".inkwell-pdf-search-hit").length).toBeGreaterThanOrEqual(2);
+    expect(container.querySelectorAll(".glossa-pdf-search-hit").length).toBeGreaterThanOrEqual(2);
     const current = () =>
       container.querySelector("[data-pdf-search-current]")?.closest("[data-pdf-page]");
     expect(current()?.getAttribute("data-pdf-page")).toBe("1");
@@ -1088,7 +1088,7 @@ describe("PDF find", () => {
     await type(input, "absent");
     await settle();
     expect(status()).toBe("pdfReading.findNoResults");
-    expect(container.querySelector(".inkwell-pdf-search-hit")).toBeNull();
+    expect(container.querySelector(".glossa-pdf-search-hit")).toBeNull();
     expect(button("pdfReading.findNext").disabled).toBe(true);
   });
 
@@ -1098,17 +1098,17 @@ describe("PDF find", () => {
     const input = field("pdfReading.find");
     await type(input, "important");
     await settle();
-    expect(container.querySelector(".inkwell-pdf-search-hit")).not.toBeNull();
+    expect(container.querySelector(".glossa-pdf-search-hit")).not.toBeNull();
     await key(input, "Escape");
     expect(container.querySelector("[data-pdf-find]")).toBeNull();
-    expect(container.querySelector(".inkwell-pdf-search-hit")).toBeNull();
+    expect(container.querySelector(".glossa-pdf-search-hit")).toBeNull();
     expect(document.activeElement).toBe(container.firstElementChild);
     expect(button("pdfReading.find").getAttribute("aria-pressed")).toBe("false");
     // Reopening shows the previous query together with its matches.
     await click(button("pdfReading.find"));
     expect(field("pdfReading.find").value).toBe("important");
     expect(document.activeElement).toBe(field("pdfReading.find"));
-    expect(container.querySelector(".inkwell-pdf-search-hit")).not.toBeNull();
+    expect(container.querySelector(".glossa-pdf-search-hit")).not.toBeNull();
   });
 
   it("reports progress while extracting and searches the new text after the PDF changes", async () => {

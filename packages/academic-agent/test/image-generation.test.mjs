@@ -21,7 +21,7 @@ async function withServer(handler, run) {
 }
 
 test("image generation saves a project image and returns a typed image", async (context) => {
-  const project = await mkdtemp(path.join(os.tmpdir(), "inkwell-image-reference-"));
+  const project = await mkdtemp(path.join(os.tmpdir(), "glossa-image-reference-"));
   context.after(() => rm(project, { recursive: true, force: true }));
   const pixel = Buffer.from("fake-png").toString("base64");
   await withServer(
@@ -82,7 +82,7 @@ test("image generation is unavailable until both model and API key are configure
 });
 
 test("poster references are returned to the model without saving or emitting a project image", async (context) => {
-  const project = await mkdtemp(path.join(os.tmpdir(), "inkwell-poster-reference-"));
+  const project = await mkdtemp(path.join(os.tmpdir(), "glossa-poster-reference-"));
   context.after(() => rm(project, { recursive: true, force: true }));
   const pixel = Buffer.from("fake-png").toString("base64");
   await withServer(

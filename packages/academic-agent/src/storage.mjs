@@ -4,16 +4,14 @@ import { DatabaseSync } from "node:sqlite";
 
 export function databasePath(directory) {
   if (process.env.GLOSSA_DATABASE_PATH) return process.env.GLOSSA_DATABASE_PATH;
-  if (process.env.INKWELL_DATABASE_PATH) return process.env.INKWELL_DATABASE_PATH;
-  const current = path.join(directory, "glossa.sqlite");
-  const legacy = path.join(directory, "inkwell.sqlite");
-  return !existsSync(current) && existsSync(legacy) ? legacy : current;
+  return path.join(directory, "glossa.sqlite");
 }
 
 const PREFIXES = [
-  "inkwell-agent-config-v1:",
-  "inkwell-external-chat-v1:",
-  "inkwell-conversation-archive-v1:",
+  "glossa-agent-config-v1:",
+  "glossa-external-chat-v1:",
+  "glossa-conversation-archive-v1:",
+  "glossa-library-excluded-pdfs:",
 ];
 const KEYS = new Set([
   "editor-settings",
@@ -22,18 +20,18 @@ const KEYS = new Set([
   "sidebarWidth",
   "rightPanelWidth",
   "terminalHeight",
-  "inkwell-agent-selection-v1",
-  "inkwell-acp-consent-v1",
-  "inkwell-layout-parser-v1",
-  "inkwell-translation-v1",
-  "inkwell-translation-profiles-v1",
-  "inkwell-pdf-color-v1",
-  "inkwell-pdf-position-v1",
-  "inkwell-library-sort-v1",
-  "inkwell-quick-start-v1",
-  "inkwell-keyboard-shortcuts-v1",
-  "inkwell-auto-update-v1",
-  "inkwell-locale",
+  "glossa-agent-selection-v1",
+  "glossa-acp-consent-v1",
+  "glossa-layout-parser-v1",
+  "glossa-translation-v1",
+  "glossa-translation-profiles-v1",
+  "glossa-pdf-color-v1",
+  "glossa-pdf-position-v1",
+  "glossa-library-sort-v1",
+  "glossa-quick-start-v1",
+  "glossa-keyboard-shortcuts-v1",
+  "glossa-auto-update-v1",
+  "glossa-locale",
   "theme",
 ]);
 export function supportedStorageKey(key) {
@@ -101,10 +99,10 @@ function safeTranslationConfig(config) {
 function safeSetting(key, value) {
   if (
     value !== null &&
-    (key === "inkwell-translation-v1" || key === "inkwell-translation-profiles-v1")
+    (key === "glossa-translation-v1" || key === "glossa-translation-profiles-v1")
   ) {
     const parsed = JSON.parse(value);
-    if (key === "inkwell-translation-v1") return JSON.stringify(safeTranslationConfig(parsed));
+    if (key === "glossa-translation-v1") return JSON.stringify(safeTranslationConfig(parsed));
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
       throw new Error("Invalid translation profiles.");
     return JSON.stringify(
@@ -117,14 +115,14 @@ function safeSetting(key, value) {
   }
   if (
     value === null ||
-    (!key.startsWith("inkwell-agent-config-v1:") && key !== "inkwell-layout-parser-v1")
+    (!key.startsWith("glossa-agent-config-v1:") && key !== "glossa-layout-parser-v1")
   )
     return value;
   const parsed = JSON.parse(value);
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
     throw new Error("Invalid provider configuration.");
   const allowed =
-    key === "inkwell-layout-parser-v1"
+    key === "glossa-layout-parser-v1"
       ? ["provider", "language", "forceOcr", "baseUrl", "model", "prompt", "customHeaders"]
       : [
           "provider",
@@ -259,19 +257,19 @@ export class AppDatabase {
       groups.set(flag.scope, ids);
     }
     for (const [scope, ids] of groups)
-      entries.push([`inkwell-conversation-archive-v1:${scope}`, JSON.stringify(ids)]);
+      entries.push([`glossa-conversation-archive-v1:${scope}`, JSON.stringify(ids)]);
     return Object.fromEntries(entries);
   }
   set(key, value) {
     if (
       !supportedStorageKey(key) ||
-      key.startsWith("inkwell-external-chat-v1:") ||
+      key.startsWith("glossa-external-chat-v1:") ||
       (value !== null && (typeof value !== "string" || Buffer.byteLength(value) > 2 * 1024 * 1024))
     )
       throw new Error("Invalid setting.");
     value = safeSetting(key, value);
-    if (key.startsWith("inkwell-conversation-archive-v1:")) {
-      const scope = JSON.stringify(scopeKey(key, "inkwell-conversation-archive-v1:"));
+    if (key.startsWith("glossa-conversation-archive-v1:")) {
+      const scope = JSON.stringify(scopeKey(key, "glossa-conversation-archive-v1:"));
       const ids = value === null ? [] : JSON.parse(value);
       if (!Array.isArray(ids) || ids.length > 100000 || !ids.every((id) => validString(id)))
         throw new Error("Invalid archive.");
@@ -287,7 +285,7 @@ export class AppDatabase {
         .run(key, value, Date.now());
   }
   saveConversation(scope, record) {
-    scopeKey(`inkwell-external-chat-v1:${scope}`, "inkwell-external-chat-v1:");
+    scopeKey(`glossa-external-chat-v1:${scope}`, "glossa-external-chat-v1:");
     if (
       !record ||
       !validString(record.id) ||
@@ -366,8 +364,8 @@ export class AppDatabase {
         this.db
           .prepare("INSERT INTO legacy_backup VALUES (?,?,?) ON CONFLICT(key) DO NOTHING")
           .run(key, value, Date.now());
-        if (key.startsWith("inkwell-external-chat-v1:")) {
-          const scope = JSON.stringify(scopeKey(key, "inkwell-external-chat-v1:"));
+        if (key.startsWith("glossa-external-chat-v1:")) {
+          const scope = JSON.stringify(scopeKey(key, "glossa-external-chat-v1:"));
           const records = JSON.parse(value);
           if (!Array.isArray(records))
             throw new Error("Invalid legacy conversation history. Original data is unchanged.");
@@ -379,6 +377,10 @@ export class AppDatabase {
             )
               this.saveConversation(scope, record);
           }
+        } else if (key.startsWith("glossa-conversation-archive-v1:")) {
+          const scope = JSON.stringify(scopeKey(key, "glossa-conversation-archive-v1:"));
+          if (!this.db.prepare("SELECT 1 FROM conversation_flags WHERE scope=?").get(scope))
+            this.set(key, value);
         } else if (!this.db.prepare("SELECT 1 FROM settings WHERE key=?").get(key))
           this.set(key, value);
         this.db.prepare("INSERT INTO migrations VALUES (?,?)").run(migration, Date.now());
@@ -452,7 +454,7 @@ export class AppDatabase {
       });
     const scope = request.scope;
     if (!validString(scope)) throw new Error("Invalid storage scope.");
-    scopeKey(`inkwell-external-chat-v1:${scope}`, "inkwell-external-chat-v1:");
+    scopeKey(`glossa-external-chat-v1:${scope}`, "glossa-external-chat-v1:");
     if (
       request.type !== "conversation_list" &&
       request.type !== "conversation_save" &&

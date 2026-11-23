@@ -23,7 +23,7 @@ export function StorageThemeSync() {
 
 async function savePending() {
   const tasks: Promise<unknown>[] = [];
-  window.dispatchEvent(new CustomEvent("inkwell-before-close", { detail: tasks }));
+  window.dispatchEvent(new CustomEvent("glossa-before-close", { detail: tasks }));
   await Promise.all(tasks);
   await flushAppStorage();
 }
@@ -43,7 +43,7 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
         if (active) setError(String(failure));
       });
     const report = (event: Event) => setError((event as CustomEvent<string>).detail);
-    window.addEventListener("inkwell-storage-error", report);
+    window.addEventListener("glossa-storage-error", report);
     const flush = () => {
       void flushAppStorage().catch((failure: unknown) => setError(String(failure)));
     };
@@ -73,7 +73,7 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
       unlisten?.();
-      window.removeEventListener("inkwell-storage-error", report);
+      window.removeEventListener("glossa-storage-error", report);
       window.removeEventListener("pagehide", flush);
     };
   }, []);

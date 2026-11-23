@@ -2,7 +2,7 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { appStorage } from "@/lib/storage/app-storage";
 import { beginTranslationHealth, invalidateTranslationHealth } from "./translation-health";
 
-export const TRANSLATION_STORAGE = "inkwell-translation-v1";
+export const TRANSLATION_STORAGE = "glossa-translation-v1";
 const pendingCredentialWrites = new Map<string, Promise<void>>();
 export const TRANSLATION_LANGUAGES = [
   "en",
@@ -61,7 +61,7 @@ export const TRANSLATION_PROVIDERS: Record<
     region: "ap-guangzhou",
   },
 };
-export const TRANSLATION_PROFILE_STORAGE = "inkwell-translation-profiles-v1";
+export const TRANSLATION_PROFILE_STORAGE = "glossa-translation-profiles-v1";
 export function translationCredentialMode(provider: TranslationProvider) {
   return ["transmart", "volcano", "google-free", "deepl-web"].includes(provider)
     ? "none"

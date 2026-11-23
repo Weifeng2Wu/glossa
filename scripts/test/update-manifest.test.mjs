@@ -7,7 +7,7 @@ import { withRuntimeBundleConfig } from "../desktop-runtime.mjs";
 import { generateUpdateManifest } from "../generate-update-manifest.mjs";
 
 async function fixture(run) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-updates-test-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-updates-test-"));
   const names = [
     "Glossa_aarch64.app.tar.gz",
     "Glossa_0.2.0_x64-setup.exe",
@@ -61,7 +61,7 @@ test("refuses to publish when a platform or matching signed package is missing",
 });
 test("requires a private signing key when building an update-enabled application", async () => {
   await assert.rejects(
-    withRuntimeBundleConfig(() => {}, { INKWELL_UPDATER_PUBLIC_KEY: "public-key" }),
+    withRuntimeBundleConfig(() => {}, { GLOSSA_UPDATER_PUBLIC_KEY: "public-key" }),
     /TAURI_SIGNING_PRIVATE_KEY/,
   );
 });

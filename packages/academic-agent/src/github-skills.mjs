@@ -69,7 +69,7 @@ export async function syncBundledSkills(library) {
   let current = library;
   const installed = new Map(current.catalog().map((skill) => [skill.id, skill]));
   for (const snapshot of await bundles(current.directory)) {
-    if (!snapshot.local || snapshot.source !== "Inkwell built-in") continue;
+    if (!snapshot.local || snapshot.source !== "Glossa built-in") continue;
     const previous = installed.get(snapshot.id);
     if (previous?.source === snapshot.source && previous.revision !== snapshot.revision)
       current = await installBundledSkill(current.directory, snapshot.id);
@@ -382,7 +382,7 @@ async function downloadSnapshot(state, fetcher, current) {
     if (NATURE_MODULES.some((name) => !files[`skills/${name}/SKILL.md`]))
       throw new Error("Nature writing suite update is missing required modules.");
     files["SKILL.md"] = natureSuiteInstructions();
-    files["INKWELL-NOTICE.txt"] =
+    files["GLOSSA-NOTICE.txt"] =
       `Glossa combines nine writing modules and nature-shared from Yuan1z0825/nature-skills at ${state.revision}. Upstream text is preserved unmodified. Glossa adds the routing entrypoint and this notice. Apache-2.0, see LICENSE.txt. Executable resources are not bundled.\n`;
   }
   const upstream = { ...state.upstream, subdirectory };

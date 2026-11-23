@@ -54,7 +54,7 @@ describe("mind maps", () => {
 
   it("persists inherited styles and branch directions through Markdown and SVG", () => {
     const markdown =
-      '# 研究 <!-- inkwell-mindmap {"style":{"fontFamily":"Microsoft YaHei","fontSize":24,"color":"#123456"}} -->\n\n- 左边 <!-- inkwell-mindmap {"style":{"background":"#eef3f8","borderColor":"#174a7e"},"side":"left"} -->\n  - 证据\n- 右边\n';
+      '# 研究 <!-- glossa-mindmap {"style":{"fontFamily":"Microsoft YaHei","fontSize":24,"color":"#123456"}} -->\n\n- 左边 <!-- glossa-mindmap {"style":{"background":"#eef3f8","borderColor":"#174a7e"},"side":"left"} -->\n  - 证据\n- 右边\n';
     const root = parseMindmap(markdown);
     expect(parseMindmap(serializeMindmap(root))).toEqual(root);
     const layout = layoutMindmap(root);
@@ -80,12 +80,12 @@ describe("mind maps", () => {
     expect(svg).toContain('fill="#123456"');
     expect(svg).toContain('fill="#eef3f8"');
     expect(svg).toContain('stroke="#174a7e"');
-    expect(svg).not.toContain("inkwell-mindmap");
+    expect(svg).not.toContain("glossa-mindmap");
   });
 
   it("keeps mixed-size nodes disjoint on both sides", () => {
     const root = parseMindmap(
-      '# Center\n- Left <!-- inkwell-mindmap {"side":"left","style":{"fontSize":48}} -->\n  - A long label with 中文 and multiple words\n  - Another label\n- Smaller left <!-- inkwell-mindmap {"side":"left"} -->\n  - Child\n- Right\n  - Child\n',
+      '# Center\n- Left <!-- glossa-mindmap {"side":"left","style":{"fontSize":48}} -->\n  - A long label with 中文 and multiple words\n  - Another label\n- Smaller left <!-- glossa-mindmap {"side":"left"} -->\n  - Child\n- Right\n  - Child\n',
     );
     const { nodes, width, height } = layoutMindmap(root);
     for (const node of nodes) {
@@ -115,11 +115,11 @@ describe("mind maps", () => {
       '{"style":{"fontSize":null}}',
       '{"style":[]}',
     ]) {
-      expect(() => parseMindmap(`# Root\n- Child <!-- inkwell-mindmap ${metadata} -->`)).toThrow();
+      expect(() => parseMindmap(`# Root\n- Child <!-- glossa-mindmap ${metadata} -->`)).toThrow();
     }
-    expect(() => parseMindmap('# Root <!-- inkwell-mindmap {"side":"left"} -->')).toThrow();
+    expect(() => parseMindmap('# Root <!-- glossa-mindmap {"side":"left"} -->')).toThrow();
     expect(() =>
-      parseMindmap('# Root\n- Branch\n  - Child <!-- inkwell-mindmap {"side":"left"} -->'),
+      parseMindmap('# Root\n- Branch\n  - Child <!-- glossa-mindmap {"side":"left"} -->'),
     ).toThrow();
   });
 });

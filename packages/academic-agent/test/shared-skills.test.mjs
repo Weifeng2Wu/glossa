@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 import { sharedSkills } from "../src/shared-skills.mjs";
 
 async function fixture(context) {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-shared-"));
-  const source = await mkdtemp(path.join(os.tmpdir(), "inkwell-source-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-shared-"));
+  const source = await mkdtemp(path.join(os.tmpdir(), "glossa-source-"));
   context.after(() =>
     Promise.all([root, source].map((directory) => rm(directory, { recursive: true, force: true }))),
   );

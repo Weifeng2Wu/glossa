@@ -169,7 +169,7 @@ export function responseLanguagePrompt(answerLanguage) {
 
 export async function createModelRuntime(sdk, dataDirectory, signal) {
   const agentDirectory =
-    process.env.INKWELL_AGENT_AUTH_DIR ?? path.join(dataDirectory, "credentials");
+    process.env.GLOSSA_AGENT_AUTH_DIR ?? path.join(dataDirectory, "credentials");
   await mkdir(agentDirectory, { recursive: true });
   return sdk.ModelRuntime.create({
     authPath: path.join(agentDirectory, "auth.json"),
@@ -182,7 +182,7 @@ export async function resolveModel(sdk, command, dataDirectory, signal) {
   const config = validateModelConfig(command);
   const runtime = await createModelRuntime(sdk, dataDirectory, signal);
   const capabilities = resolveModelCapabilities(command, runtime.getModels());
-  const provider = config.protocol ? "inkwell-custom" : command.provider;
+  const provider = config.protocol ? "glossa-custom" : command.provider;
   if (config.protocol)
     runtime.registerProvider(provider, {
       api: PROTOCOLS[config.protocol].api,

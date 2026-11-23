@@ -30,7 +30,7 @@ test("WAF credentials accompany model discovery for every API protocol", async (
 });
 
 test("chat runtime receives custom headers alongside existing model headers", async (context) => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-header-model-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-header-model-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   const sdk = {
     ModelRuntime: {

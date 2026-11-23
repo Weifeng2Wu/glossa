@@ -47,7 +47,7 @@ async function requestClose(extra: Promise<unknown>[] = []) {
   const state = { closed: false };
   await act(async () => {
     const tasks: Promise<unknown>[] = [...extra];
-    window.dispatchEvent(new CustomEvent("inkwell-before-close", { detail: tasks }));
+    window.dispatchEvent(new CustomEvent("glossa-before-close", { detail: tasks }));
     void Promise.all(tasks).then(() => {
       state.closed = true;
     });

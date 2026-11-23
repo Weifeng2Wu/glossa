@@ -103,7 +103,7 @@ export function buildFormatReviewSkill(request) {
 
 export async function createFormatReviewSkill(directory, request) {
   const skill = buildFormatReviewSkill(request);
-  const temporary = await mkdtemp(path.join(os.tmpdir(), "inkwell-format-skill-"));
+  const temporary = await mkdtemp(path.join(os.tmpdir(), "glossa-format-skill-"));
   try {
     const { mkdir } = await import("node:fs/promises");
     await mkdir(path.join(temporary, "references"));

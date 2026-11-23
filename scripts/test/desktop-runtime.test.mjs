@@ -51,7 +51,7 @@ test("selects alternate AWS builds using Node export conditions in declaration o
 });
 
 test("omits unused AWS ES builds and preserves ES builds selected by Node", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell AWS builds "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa AWS builds "));
   try {
     const deployed = path.join(directory, "deployed");
     const destination = path.join(directory, "sdk");
@@ -100,7 +100,7 @@ test("omits unused AWS ES builds and preserves ES builds selected by Node", asyn
 });
 
 test("omits TypeScript declarations while preserving executable modules and assets", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell runtime declarations "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa runtime declarations "));
   try {
     const deployed = path.join(directory, "deployed");
     const destination = path.join(directory, "sdk");
@@ -141,7 +141,7 @@ test("omits TypeScript declarations while preserving executable modules and asse
 });
 
 test("checks installed Windows paths independently of the staging directory", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell install paths "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa install paths "));
   try {
     await mkdir(path.join(directory, "sdk"));
     const filename = path.join(directory, "sdk", `${"a".repeat(165)}.js`);
@@ -158,7 +158,7 @@ test("checks installed Windows paths independently of the staging directory", as
 });
 
 test("rejects Windows directory paths that exceed the legacy creation limit", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell directory paths "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa directory paths "));
   try {
     const allowed = path.join(directory, "sdk", "a".repeat(156));
     await mkdir(allowed, { recursive: true });
@@ -194,7 +194,7 @@ test("passes bundle configuration as a JSON file and cleans up after success or 
         return "built";
       },
       {
-        INKWELL_RUNTIME_RESOURCES: path.win32.resolve(tauriDirectory, "..", "iw-agent"),
+        GLOSSA_RUNTIME_RESOURCES: path.win32.resolve(tauriDirectory, "..", "iw-agent"),
       },
       "win32",
     );
@@ -205,7 +205,7 @@ test("passes bundle configuration as a JSON file and cleans up after success or 
 });
 
 test("uses rooted Windows resource patterns without retaining the long project prefix", () => {
-  const project = "D:\\a\\inkwell\\inkwell\\apps\\desktop\\src-tauri";
+  const project = "D:\\a\\glossa\\glossa\\apps\\desktop\\src-tauri";
   const resources = "D:\\iw-agent";
   const pattern = windowsResourcePattern(project, resources);
   assert.equal(pattern, "/iw-agent");
@@ -219,10 +219,10 @@ test("uses rooted Windows resource patterns without retaining the long project p
 });
 
 test("uses short absolute Windows resource staging only when explicitly configured", () => {
-  const environment = { INKWELL_RUNTIME_RESOURCES: "C:\\iw-agent" };
+  const environment = { GLOSSA_RUNTIME_RESOURCES: "C:\\iw-agent" };
   assert.equal(runtimeResources(environment, "win32"), "C:\\iw-agent");
   assert.equal(runtimeResources(environment, "darwin"), runtimeResources({}, "darwin"));
-  assert.throws(() => runtimeResources({ INKWELL_RUNTIME_RESOURCES: "relative" }, "win32"));
+  assert.throws(() => runtimeResources({ GLOSSA_RUNTIME_RESOURCES: "relative" }, "win32"));
 });
 
 test("selects native platform runtime targets", () => {
@@ -273,7 +273,7 @@ test("verifies the exact Node distribution checksum", () => {
 });
 
 test("relocated SDK imports using a path containing spaces", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell sdk test "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa sdk test "));
   try {
     const sdk = path.join(directory, "index.mjs");
     await writeFile(sdk, "export function createAgentSession() {}\n");
@@ -288,7 +288,7 @@ test("relocated SDK imports using a path containing spaces", async () => {
 });
 
 test("materializes pnpm dependencies without traversing the deployed root self-reference", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell deploy test "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa deploy test "));
   try {
     const deployed = path.join(directory, "deployed");
     const destination = path.join(directory, "sdk");
@@ -340,7 +340,7 @@ test("materializes pnpm dependencies without traversing the deployed root self-r
 });
 
 test("does not silently skip broken runtime dependencies", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell broken deploy "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa broken deploy "));
   try {
     const deployed = path.join(directory, "deployed");
     await mkdir(path.join(deployed, "node_modules"), { recursive: true });
@@ -362,7 +362,7 @@ test("does not silently skip broken runtime dependencies", async () => {
 });
 
 test("preserves isolated transitive dependency resolution after relocation", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell transitive "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa transitive "));
   try {
     const deployed = path.join(directory, "deployed");
     const destination = path.join(directory, "sdk");
@@ -420,7 +420,7 @@ test("preserves isolated transitive dependency resolution after relocation", asy
 });
 
 test("shares diamond dependencies while preserving conflicting versions and cycles", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell shared dependencies "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa shared dependencies "));
   try {
     const deployed = path.join(directory, "deployed");
     const destination = path.join(directory, "sdk");
@@ -485,7 +485,7 @@ test("shares diamond dependencies while preserving conflicting versions and cycl
 
 test("hoists nested AWS versions only when all dependency resolutions remain correct", async () => {
   for (const blocksHoisting of [false, true]) {
-    const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell AWS layout "));
+    const directory = await mkdtemp(path.join(os.tmpdir(), "glossa AWS layout "));
     try {
       const deployed = path.join(directory, "deployed");
       const resources = path.join(directory, "agent");
@@ -571,7 +571,7 @@ test("hoists nested AWS versions only when all dependency resolutions remain cor
 });
 
 test("bounds copying when conflicting packages form repeated dependency diamonds", async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell dependency diamonds "));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa dependency diamonds "));
   try {
     const deployed = path.join(directory, "deployed");
     const destination = path.join(directory, "sdk");

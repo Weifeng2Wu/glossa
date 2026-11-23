@@ -18,7 +18,7 @@ const bundledFiles = {
 const now = 2_000_000_000_000;
 
 async function fixture(context, install = true) {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-github-skills-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-github-skills-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(
     path.join(root, "registry.json"),
@@ -245,7 +245,7 @@ test("removed skills are not silently reinstalled by automatic updates", async (
 test("updates preserve local imports made while downloads are in progress", async (context) => {
   const root = await fixture(context);
   await syncGitHubSkills(root, { fetcher: upstream().fetcher, now });
-  const localFolder = await mkdtemp(path.join(os.tmpdir(), "inkwell-local-skill-"));
+  const localFolder = await mkdtemp(path.join(os.tmpdir(), "glossa-local-skill-"));
   context.after(() => rm(localFolder, { recursive: true, force: true }));
   await writeFile(
     path.join(localFolder, "SKILL.md"),

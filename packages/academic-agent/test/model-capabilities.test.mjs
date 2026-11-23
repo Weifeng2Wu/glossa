@@ -68,7 +68,7 @@ test("manual declarations win and are scoped to protocol, endpoint and model", (
 });
 
 test("custom runtime model registration uses discovered and manual capabilities", async (context) => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-capabilities-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-capabilities-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   let registered;
   const runtime = {

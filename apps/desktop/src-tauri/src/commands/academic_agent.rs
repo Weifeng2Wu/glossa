@@ -251,7 +251,6 @@ pub async fn academic_agent_start(
         .arg(sdk)
         .arg(&project)
         .env("GLOSSA_DATABASE_PATH", &database)
-        .env("INKWELL_DATABASE_PATH", &database)
         .current_dir(&review_workspace)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

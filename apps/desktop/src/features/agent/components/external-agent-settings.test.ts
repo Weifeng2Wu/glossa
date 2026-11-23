@@ -12,7 +12,7 @@ import { AgentSelectionSettings, ExternalAgentSettings } from "./external-agent-
 
 vi.mock("../lib/use-installed-agents", () => ({
   useInstalledAgents: vi.fn(() => null),
-  AGENT_INSTALLATION_CHANGED: "inkwell-agent-installation-changed",
+  AGENT_INSTALLATION_CHANGED: "glossa-agent-installation-changed",
 }));
 vi.mock("@tauri-apps/api/core", () => ({ isTauri: vi.fn(() => true), invoke: vi.fn() }));
 

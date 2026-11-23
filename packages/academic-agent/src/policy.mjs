@@ -115,7 +115,7 @@ export class ProjectPolicy {
     await this.resolve(target);
     if (!(await this.read(target)).equals(before))
       throw new Error("File changed while awaiting approval. Read it and propose the edit again.");
-    const temporary = path.join(path.dirname(target), `.inkwell-${randomUUID()}.tmp`);
+    const temporary = path.join(path.dirname(target), `.glossa-${randomUUID()}.tmp`);
     try {
       const handle = await open(temporary, "wx", (await stat(target)).mode & 0o777);
       try {

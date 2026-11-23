@@ -1,4 +1,4 @@
-.inkwell-drawing .excalidraw {
+.glossa-drawing .excalidraw {
   --ui-font: var(--font-family-sans);
   --island-bg-color: var(--surface);
   --popup-bg-color: var(--surface);
@@ -15,6 +15,6 @@
   --color-border-outline: var(--border);
 }
 
-.inkwell-drawing .excalidraw .default-sidebar-trigger {
+.glossa-drawing .excalidraw .default-sidebar-trigger {
   display: none;
 }

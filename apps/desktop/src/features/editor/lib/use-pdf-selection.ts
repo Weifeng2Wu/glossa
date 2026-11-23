@@ -277,7 +277,7 @@ export function usePdfSelection({
     // A release outside the window may never be delivered.
     window.addEventListener("blur", release);
     root.addEventListener("pointerdown", schedule);
-    root.addEventListener("inkwell-pdf-text-layer-ready", schedule);
+    root.addEventListener("glossa-pdf-text-layer-ready", schedule);
     window.addEventListener("resize", schedule);
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
     observer?.observe(root);
@@ -297,7 +297,7 @@ export function usePdfSelection({
       document.removeEventListener("pointercancel", release, true);
       window.removeEventListener("blur", release);
       root.removeEventListener("pointerdown", schedule);
-      root.removeEventListener("inkwell-pdf-text-layer-ready", schedule);
+      root.removeEventListener("glossa-pdf-text-layer-ready", schedule);
       window.removeEventListener("resize", schedule);
     };
   }, [rootRef, geometryKey, geometry]);

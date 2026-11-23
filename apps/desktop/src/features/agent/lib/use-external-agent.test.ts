@@ -191,7 +191,7 @@ describe("external Agent lifecycle", () => {
     "codex",
   ] as const)("keeps the saved %s Agent and its connection when a switch is cancelled", async (original) => {
     const storage = new Map([
-      ["inkwell-agent-selection-v1", JSON.stringify({ selected: original, launches: {} })],
+      ["glossa-agent-selection-v1", JSON.stringify({ selected: original, launches: {} })],
     ]);
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => storage.get(key) ?? null,
@@ -210,7 +210,7 @@ describe("external Agent lifecycle", () => {
     expect(selection.selected).toBe(original);
     expect(agent.confirmationAgent).toBe("claude");
     expect(agent.connectionConfirmation).toBe(true);
-    expect(JSON.parse(storage.get("inkwell-agent-selection-v1") ?? "{}").selected).toBe(original);
+    expect(JSON.parse(storage.get("glossa-agent-selection-v1") ?? "{}").selected).toBe(original);
     agent.cancelConnection();
     renderSelection();
     render();
@@ -220,7 +220,7 @@ describe("external Agent lifecycle", () => {
     expect(agent.connectionConfirmation).toBe(false);
     expect(transport.connect).toHaveBeenCalledTimes(connections);
     expect(transport.disconnect).toHaveBeenCalledTimes(disconnects);
-    expect(JSON.parse(storage.get("inkwell-agent-selection-v1") ?? "{}").selected).toBe(original);
+    expect(JSON.parse(storage.get("glossa-agent-selection-v1") ?? "{}").selected).toBe(original);
   });
 
   it("saves and connects the chosen Agent only after confirmation, without a second prompt", async () => {
@@ -243,7 +243,7 @@ describe("external Agent lifecycle", () => {
     expect(agent.connected).toBe(true);
     expect(transport.connect).toHaveBeenCalledExactlyOnceWith("claude", "/project", undefined);
     expect(write).toHaveBeenLastCalledWith(
-      "inkwell-agent-selection-v1",
+      "glossa-agent-selection-v1",
       JSON.stringify({ selected: "claude", launches: {} }),
     );
   });
@@ -454,10 +454,10 @@ describe("external Agent lifecycle", () => {
     await render().send("Save before closing");
     render();
     const tasks: Promise<unknown>[] = [];
-    window.dispatchEvent(new CustomEvent("inkwell-before-close", { detail: tasks }));
+    window.dispatchEvent(new CustomEvent("glossa-before-close", { detail: tasks }));
     await Promise.all(tasks);
     expect(write).toHaveBeenCalledWith(
-      expect.stringContaining("inkwell-external-chat-v1:"),
+      expect.stringContaining("glossa-external-chat-v1:"),
       expect.stringContaining("Save before closing"),
     );
   });

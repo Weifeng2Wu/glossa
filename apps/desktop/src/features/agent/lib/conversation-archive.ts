@@ -1,7 +1,7 @@
 import { LocalizedError } from "@/features/i18n";
 import { appStorage } from "@/lib/storage/app-storage";
 export function archiveKey(directory: string, agent: string) {
-  return `inkwell-conversation-archive-v1:${JSON.stringify([directory, agent])}`;
+  return `glossa-conversation-archive-v1:${JSON.stringify([directory, agent])}`;
 }
 
 export function readArchive(key: string): string[] {

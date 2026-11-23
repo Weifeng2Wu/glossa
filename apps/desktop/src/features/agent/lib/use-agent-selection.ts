@@ -11,7 +11,7 @@ import {
   type LaunchOverride,
 } from "./external-agent-catalog";
 
-const STORAGE_KEY = "inkwell-agent-selection-v1";
+const STORAGE_KEY = "glossa-agent-selection-v1";
 
 export function useAgentSelection() {
   const [selected, commitSelected] = useState<AgentSelection>("builtin");

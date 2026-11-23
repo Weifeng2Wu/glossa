@@ -50,7 +50,7 @@ export function useAcademicAgent({
   // Long-lived listeners read the translator through a ref so they follow a language switch.
   const translate = useRef(t);
   translate.current = t;
-  const storageKey = `inkwell-agent-config-v1:${directory ?? ""}`;
+  const storageKey = `glossa-agent-config-v1:${directory ?? ""}`;
   const [config, setConfig] = useState(() => readConfig(storageKey));
   const [persistedConfig, setPersistedConfig] = useState<string | null>(null);
   const [configSaveError, setConfigSaveError] = useState<string | null>(null);
@@ -58,12 +58,12 @@ export function useAcademicAgent({
   const { apiKey, setApiKey, apiKeyLoading, apiKeySaved, apiKeyError } = useAgentApiKey(config);
   const imageGenerationCredential = {
     protocol: "" as const,
-    provider: "inkwell-imagegen",
+    provider: "glossa-imagegen",
     baseUrl: config.imageGeneration.baseUrl,
   };
   const webSearchCredential = {
     protocol: "" as const,
-    provider: "inkwell-web-search",
+    provider: "glossa-web-search",
     baseUrl: config.webSearch.baseUrl,
   };
   const {

@@ -83,7 +83,7 @@ cd /tmp
 rm -rf homebrew-tap
 git clone https://github.com/EvolvingLMMs-Lab/homebrew-tap.git
 cd homebrew-tap
-sed -i '' "s/sha256 \".*\"/sha256 \"$NEW_SHA\"/" Casks/inkwell.rb
+sed -i '' "s/sha256 \".*\"/sha256 \"$NEW_SHA\"/" Casks/glossa.rb
 git add -A
 git commit -m "chore: update sha256 for $(date +%Y-%m-%d)"
 git push
@@ -102,7 +102,7 @@ echo "Downloads:"
 echo "  Release: ${RELEASE_URL}"
 echo "  DMG: https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${DMG_ASSET_NAME}"
 echo "  PKG: https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${PKG_ASSET_NAME}"
-echo "  Homebrew: brew install --cask EvolvingLMMs-Lab/tap/inkwell"
+echo "  Homebrew: brew install --cask EvolvingLMMs-Lab/tap/glossa"
 echo ""
 echo "GitHub Release:"
 echo "  Tag: ${RELEASE_TAG}"

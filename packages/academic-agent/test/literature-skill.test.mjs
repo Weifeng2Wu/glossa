@@ -23,7 +23,7 @@ const RESOURCES = [
 ];
 
 test("literature skill installs offline beside the poster skill, loads its references and can be removed", async (context) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-literature-skill-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-literature-skill-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, "registry.json"), '{"schemaVersion":1,"skills":[]}');
   const bundle = new URL("../skills/literature-bundle.json", import.meta.url);
@@ -34,7 +34,7 @@ test("literature skill installs offline beside the poster skill, loads its refer
   );
   const snapshot = JSON.parse(await readFile(bundle, "utf8"));
   assert.equal(snapshot.id, ID);
-  assert.equal(snapshot.source, "Inkwell built-in");
+  assert.equal(snapshot.source, "Glossa built-in");
   assert.equal(snapshot.local, true);
   assert.ok(snapshot.description.length <= 500);
   assert.equal(
@@ -65,7 +65,7 @@ test("literature skill installs offline beside the poster skill, loads its refer
     ]),
   );
   assert.equal(library.registry.skills[0].revision, snapshot.revision);
-  assert.equal(library.registry.skills[0].source, "Inkwell built-in");
+  assert.equal(library.registry.skills[0].source, "Glossa built-in");
 
   const selection = library.select([ID]);
   const { instructions, resources } = await selection.load(ID);
@@ -79,7 +79,7 @@ test("literature skill installs offline beside the poster skill, loads its refer
   assert.match(instructions, /`readstatus`: `read` or `reading`/);
   assert.match(instructions, /\.notes\.md/);
   assert.match(instructions, /Never modify annotation blocks/);
-  assert.match(instructions, /inkwell-pdf-annotation/);
+  assert.match(instructions, /glossa-pdf-annotation/);
   assert.match(instructions, /papers\/reading-digest\.md/);
   assert.match(instructions, /You cannot open PDFs/);
   assert.match(instructions, /@paper:"citekey"/);
@@ -136,7 +136,7 @@ test("literature bundle is embedded in both desktop runtimes", async () => {
 });
 
 test("literature bundle checks and rebuilds identically from a Windows CRLF checkout", async (context) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-literature-crlf-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-literature-crlf-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   const script = path.join(root, "scripts/bundle-literature-skill.mjs");
   await mkdir(path.dirname(script), { recursive: true });

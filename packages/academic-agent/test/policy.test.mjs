@@ -13,7 +13,7 @@ afterEach(async () => {
 });
 
 async function fixture(approve = async () => {}) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-policy-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-policy-"));
   directories.push(directory);
   await writeFile(path.join(directory, "paper.tex"), "Original");
   return { directory, policy: new ProjectPolicy(directory, approve) };
@@ -205,7 +205,7 @@ test("an aborted approval does not write", async () => {
 
 test("canonicalizes project-root aliases for reads, approvals and edits", async () => {
   const { directory } = await fixture();
-  const parent = await mkdtemp(path.join(os.tmpdir(), "inkwell-policy-alias-"));
+  const parent = await mkdtemp(path.join(os.tmpdir(), "glossa-policy-alias-"));
   directories.push(parent);
   const alias = path.join(parent, "project");
   await symlink(directory, alias, "junction");

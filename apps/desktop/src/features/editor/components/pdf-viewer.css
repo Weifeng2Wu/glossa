@@ -1,8 +1,8 @@
-.inkwell-pdf-page {
+.glossa-pdf-page {
   isolation: isolate;
 }
 
-.inkwell-pdf-mark-layer {
+.glossa-pdf-mark-layer {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -13,70 +13,70 @@
 }
 
 /* The canvas already paints the glyphs. Never paint a second, selected copy. */
-.inkwell-pdf-page .textLayer ::selection {
+.glossa-pdf-page .textLayer ::selection {
   color: transparent;
   text-shadow: none;
   background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
-.inkwell-pdf-page .textLayer br::selection {
+.glossa-pdf-page .textLayer br::selection {
   background: transparent;
 }
 
 /* Pending glyph work must not briefly restore loose native font rectangles. */
-[data-pdf-selection-renderer="glyph"] .inkwell-pdf-page .textLayer ::selection,
-.inkwell-pdf-page:has([data-pdf-selection-preview]) .textLayer ::selection {
+[data-pdf-selection-renderer="glyph"] .glossa-pdf-page .textLayer ::selection,
+.glossa-pdf-page:has([data-pdf-selection-preview]) .textLayer ::selection {
   background: transparent;
 }
 
 @media (forced-colors: active) {
-  .inkwell-pdf-page .textLayer ::selection,
-  [data-pdf-selection-renderer="glyph"] .inkwell-pdf-page .textLayer ::selection,
-  .inkwell-pdf-page:has([data-pdf-selection-preview]) .textLayer ::selection {
+  .glossa-pdf-page .textLayer ::selection,
+  [data-pdf-selection-renderer="glyph"] .glossa-pdf-page .textLayer ::selection,
+  .glossa-pdf-page:has([data-pdf-selection-preview]) .textLayer ::selection {
     background: Highlight;
   }
 
-  .inkwell-pdf-page .textLayer br::selection,
-  [data-pdf-selection-renderer="glyph"] .inkwell-pdf-page .textLayer br::selection,
-  .inkwell-pdf-page:has([data-pdf-selection-preview]) .textLayer br::selection {
+  .glossa-pdf-page .textLayer br::selection,
+  [data-pdf-selection-renderer="glyph"] .glossa-pdf-page .textLayer br::selection,
+  .glossa-pdf-page:has([data-pdf-selection-preview]) .textLayer br::selection {
     background: transparent;
   }
 
-  .inkwell-pdf-page [data-pdf-selection-preview] {
+  .glossa-pdf-page [data-pdf-selection-preview] {
     display: none;
   }
 
-  .inkwell-pdf-mark-layer {
+  .glossa-pdf-mark-layer {
     mix-blend-mode: normal;
   }
 }
 
 /* Find-in-document matches, located from the rendered text layer. */
-.inkwell-pdf-search-layer {
+.glossa-pdf-search-layer {
   position: absolute;
   inset: 0;
   z-index: 4;
   pointer-events: none;
 }
 
-.inkwell-pdf-search-hit {
+.glossa-pdf-search-hit {
   position: absolute;
   border-radius: 2px;
   background: color-mix(in srgb, var(--warning) 35%, transparent);
 }
 
-.inkwell-pdf-search-hit[data-pdf-search-current] {
+.glossa-pdf-search-hit[data-pdf-search-current] {
   background: color-mix(in srgb, var(--warning) 60%, transparent);
   outline: 1px solid var(--warning);
 }
 
 @media (forced-colors: active) {
-  .inkwell-pdf-search-hit {
+  .glossa-pdf-search-hit {
     background: transparent;
     outline: 1px solid Highlight;
   }
 
-  .inkwell-pdf-search-hit[data-pdf-search-current] {
+  .glossa-pdf-search-hit[data-pdf-search-current] {
     outline: 2px solid Highlight;
   }
 }

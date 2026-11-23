@@ -32,7 +32,7 @@ const sdk = {
 };
 
 async function fixture(context) {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-history-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-history-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   const project = path.join(root, "project");
   const store = path.join(root, "sessions");

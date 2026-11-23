@@ -327,7 +327,7 @@ kbd {
    OverlayScrollbars theme
    ========================================================================== */
 
-.os-theme-inkwell {
+.os-theme-glossa {
   --os-size: 12px;
   --os-padding-perpendicular: 3px;
   --os-padding-axis: 3px;
@@ -338,34 +338,34 @@ kbd {
   --os-handle-bg-active: color-mix(in srgb, var(--foreground) 26%, transparent);
 }
 
-.os-theme-inkwell .os-scrollbar {
+.os-theme-glossa .os-scrollbar {
   padding: 0;
 }
 
-.os-theme-inkwell .os-scrollbar .os-scrollbar-track {
+.os-theme-glossa .os-scrollbar .os-scrollbar-track {
   background: transparent;
 }
 
-.os-theme-inkwell .os-scrollbar-vertical .os-scrollbar-track {
+.os-theme-glossa .os-scrollbar-vertical .os-scrollbar-track {
   border-left: none;
 }
 
-.os-theme-inkwell .os-scrollbar-horizontal .os-scrollbar-track {
+.os-theme-glossa .os-scrollbar-horizontal .os-scrollbar-track {
   border-top: none;
 }
 
-.os-theme-inkwell .os-scrollbar .os-scrollbar-handle {
+.os-theme-glossa .os-scrollbar .os-scrollbar-handle {
   border: none;
   background: color-mix(in srgb, var(--foreground) 8%, transparent);
   transition: background-color 0.15s ease;
 }
 
-.os-theme-inkwell .os-scrollbar .os-scrollbar-handle:hover {
+.os-theme-glossa .os-scrollbar .os-scrollbar-handle:hover {
   background: color-mix(in srgb, var(--foreground) 20%, transparent);
 }
 
-.os-theme-inkwell .os-scrollbar .os-scrollbar-handle:active,
-.os-theme-inkwell .os-scrollbar .os-scrollbar-handle.active {
+.os-theme-glossa .os-scrollbar .os-scrollbar-handle:active,
+.os-theme-glossa .os-scrollbar .os-scrollbar-handle.active {
   background: color-mix(in srgb, var(--foreground) 30%, transparent);
 }
 

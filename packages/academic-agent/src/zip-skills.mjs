@@ -160,7 +160,7 @@ export function readSkillZip(bytes) {
 
 export async function importSkillZip(filename, operation) {
   const files = readSkillZip(await readFile(filename));
-  const temporary = await mkdtemp(path.join(os.tmpdir(), "inkwell-skill-zip-"));
+  const temporary = await mkdtemp(path.join(os.tmpdir(), "glossa-skill-zip-"));
   try {
     for (const [relative, content] of files) {
       const destination = path.join(temporary, relative);

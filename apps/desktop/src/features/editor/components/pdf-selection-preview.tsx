@@ -13,7 +13,7 @@ export const PdfSelectionPreview = memo(function PdfSelectionPreview({
       <svg
         aria-hidden="true"
         data-pdf-selection-preview=""
-        className="inkwell-pdf-mark-layer"
+        className="glossa-pdf-mark-layer"
         viewBox="0 0 1 1"
         preserveAspectRatio="none"
       >

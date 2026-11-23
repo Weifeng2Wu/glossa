@@ -15,7 +15,7 @@ import {
 import { sharedSkills } from "../src/shared-skills.mjs";
 
 test("poster skill installs offline, loads declared resources, avoids upstream sync and can be removed", async (context) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-poster-skill-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-poster-skill-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, "registry.json"), '{"schemaVersion":1,"skills":[]}');
   const bundle = new URL("../skills/poster-bundle.json", import.meta.url);
@@ -44,7 +44,7 @@ test("poster skill installs offline, loads declared resources, avoids upstream s
   );
   library = await syncBundledSkills(stale);
   assert.equal(library.registry.skills[0].revision, snapshot.revision);
-  assert.equal(library.registry.skills[0].source, "Inkwell built-in");
+  assert.equal(library.registry.skills[0].source, "Glossa built-in");
   const selection = library.select(["academic-poster"]);
   assert.match((await selection.load("academic-poster")).instructions, /\.poster\.json/);
   assert.match((await selection.load("academic-poster")).instructions, /project-root `posters\//);
@@ -123,7 +123,7 @@ test("poster skill installs offline, loads declared resources, avoids upstream s
 });
 
 test("poster bundle checks and rebuilds identically from a Windows CRLF checkout", async (context) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-poster-crlf-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-poster-crlf-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   const script = path.join(root, "scripts/bundle-poster-skill.mjs");
   await mkdir(path.dirname(script), { recursive: true });

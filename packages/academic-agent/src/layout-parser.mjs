@@ -191,7 +191,7 @@ export async function layoutParser(request, dependencies = {}) {
     return { text: pages.join("\n\n") };
   }
   const base = "https://mineru.net/api/v4";
-  const name = request.type === "test" ? "inkwell-connection-test.pdf" : request.name;
+  const name = request.type === "test" ? "glossa-connection-test.pdf" : request.name;
   if (
     typeof name !== "string" ||
     name.length > 256 ||

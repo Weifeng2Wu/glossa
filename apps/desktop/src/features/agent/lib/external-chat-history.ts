@@ -16,7 +16,7 @@ export type ExternalChatRecord = {
   messages: ExternalChatMessage[];
 };
 export function chatHistoryKey(directory: string, agent: string) {
-  return `inkwell-external-chat-v1:${JSON.stringify([directory, agent])}`;
+  return `glossa-external-chat-v1:${JSON.stringify([directory, agent])}`;
 }
 export function readChatHistory(key: string): ExternalChatRecord[] {
   const parsed: unknown = JSON.parse(localStorage.getItem(key) ?? "[]");
@@ -48,7 +48,7 @@ export function readChatHistory(key: string): ExternalChatRecord[] {
 }
 
 function scope(key: string) {
-  return key.slice("inkwell-external-chat-v1:".length);
+  return key.slice("glossa-external-chat-v1:".length);
 }
 
 export async function listChatHistory(key: string): Promise<ExternalChatRecord[]> {

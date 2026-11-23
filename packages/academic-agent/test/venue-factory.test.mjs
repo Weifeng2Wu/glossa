@@ -129,7 +129,7 @@ test("rejects untraceable machine rules, unsafe styles, dropped rules and escala
 });
 
 test("the bundled engine passes a clean source and detects an anonymity violation without inventing layout rules", async (context) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-venue-engine-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-venue-engine-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   const bundle = JSON.parse(
     await readFile(new URL("../skills/venue-factory-bundle.json", import.meta.url), "utf8"),

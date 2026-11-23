@@ -2,9 +2,7 @@ use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
 pub fn node_binary() -> Result<PathBuf, String> {
-    if let Some(binary) = std::env::var_os("GLOSSA_NODE_BINARY")
-        .or_else(|| std::env::var_os("INKWELL_NODE_BINARY"))
-    {
+    if let Some(binary) = std::env::var_os("GLOSSA_NODE_BINARY") {
         return Ok(PathBuf::from(binary));
     }
     if cfg!(debug_assertions) {
@@ -13,20 +11,11 @@ pub fn node_binary() -> Result<PathBuf, String> {
     let executable = std::env::current_exe().map_err(|error| error.to_string())?;
     let directory = executable.parent().ok_or("Application directory is unavailable.")?;
     let binary_name = if cfg!(windows) { "glossa-node.exe" } else { "glossa-node" };
-    let candidate = directory.join(binary_name);
-    if candidate.exists() {
-        return Ok(candidate);
-    }
-    let legacy_name = if cfg!(windows) { "inkwell-node.exe" } else { "inkwell-node" };
-    let legacy_candidate = directory.join(legacy_name);
-    if legacy_candidate.exists() {
-        return Ok(legacy_candidate);
-    }
-    Ok(candidate)
+    Ok(directory.join(binary_name))
 }
 
 pub async fn sdk_path(app: &AppHandle, development_root: PathBuf) -> Result<PathBuf, String> {
-    let sdk = if let Some(root) = std::env::var_os("INKWELL_AGENT_RUNTIME_ROOT") {
+    let sdk = if let Some(root) = std::env::var_os("GLOSSA_AGENT_RUNTIME_ROOT") {
         PathBuf::from(root).join("packages/coding-agent/dist/index.js")
     } else if cfg!(debug_assertions) {
         development_root.join("packages/coding-agent/dist/index.js")

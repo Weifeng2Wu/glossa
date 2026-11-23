@@ -476,7 +476,7 @@ describe("ACP transport isolation", () => {
           status: "in_progress",
           rawInput: {
             AbsolutePath:
-              "/Users/wu/Library/Application Support/inkwell/workspace/posters/draft.poster.json",
+              "/Users/wu/Library/Application Support/glossa/workspace/posters/draft.poster.json",
             path: "posters/draft.poster.json",
           },
         },

@@ -35,7 +35,7 @@ export const DEFAULT_CLOUD_CONFIG: CloudConfig = {
   provider: "r2",
   endpoint: "",
   bucket: "",
-  prefix: "inkwell",
+  prefix: "glossa",
   region: "auto",
   enabled: false,
   intervalMinutes: 30,

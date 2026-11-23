@@ -159,7 +159,7 @@ export function DrawingEditor({ filePath, projectPath: _projectPath, ...props }:
       {source ? (
         <MonacoEditor {...props} language="json" />
       ) : parsed.scene ? (
-        <div className="inkwell-drawing min-h-0 flex-1">
+        <div className="glossa-drawing min-h-0 flex-1">
           <CanvasBoundary key={revision} fallback={invalid}>
             <DrawingCanvas
               initialData={parsed.scene}

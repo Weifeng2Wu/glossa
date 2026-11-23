@@ -9,7 +9,7 @@ import type { PdfPageGlyphs } from "./pdf-glyph-geometry";
 import { PDF_DOCUMENT_OPTIONS } from "./pdf-options";
 
 it("ships the CMaps needed to read embedded Japanese and Korean fonts offline", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "inkwell-pdf-assets-"));
+  const directory = await mkdtemp(join(tmpdir(), "glossa-pdf-assets-"));
   try {
     preparePdfAssets(directory);
     for (const resource of [
@@ -56,7 +56,7 @@ it("ships the CMaps needed to read embedded Japanese and Korean fonts offline", 
 });
 
 it("runs the packaged browser PDFium module and local WASM through the actual worker protocol", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "inkwell-pdf-worker-assets-"));
+  const directory = await mkdtemp(join(tmpdir(), "glossa-pdf-worker-assets-"));
   let worker: Worker | undefined;
   try {
     preparePdfAssets(directory);

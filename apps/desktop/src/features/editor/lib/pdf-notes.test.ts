@@ -137,16 +137,16 @@ describe("PDF Markdown sidecars", () => {
 
   it("fails closed on truncated, duplicate, or malformed anchors", () => {
     const content = upsertPdfAnnotation(initial, annotation, "Page 2");
-    expect(() => parsePdfNotes(content.replace("<!-- /inkwell-pdf-annotation -->", ""))).toThrow();
+    expect(() => parsePdfNotes(content.replace("<!-- /glossa-pdf-annotation -->", ""))).toThrow();
     expect(() =>
-      parsePdfNotes(content + content.slice(content.indexOf("<!-- inkwell-pdf-annotation "))),
+      parsePdfNotes(content + content.slice(content.indexOf("<!-- glossa-pdf-annotation "))),
     ).toThrow();
     expect(() => parsePdfNotes(content.replace('"page":2', '"page":0'))).toThrow();
     expect(() => parsePdfNotes(content.replace('"width":0.5', '"width":9'))).toThrow();
     expect(() =>
       upsertPdfAnnotation(
         content,
-        { ...annotation, note: "<!-- /inkwell-pdf-annotation -->" },
+        { ...annotation, note: "<!-- /glossa-pdf-annotation -->" },
         "Page 2",
       ),
     ).toThrow();

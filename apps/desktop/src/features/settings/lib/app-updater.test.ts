@@ -76,7 +76,7 @@ describe("application updater", () => {
     await updater.initializeUpdates();
     await updater.setAutomaticUpdates(true);
     await vi.waitFor(() => expect(updater.getUpdateState().phase).toBe("downloaded"));
-    expect(mocks.setItem).toHaveBeenCalledWith("inkwell-auto-update-v1", "true");
+    expect(mocks.setItem).toHaveBeenCalledWith("glossa-auto-update-v1", "true");
     expect(update.install).not.toHaveBeenCalled();
     await updater.checkForUpdates(true);
     expect(mocks.check).toHaveBeenCalledTimes(1);

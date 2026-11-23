@@ -16,11 +16,11 @@ export type PdfAnnotation = {
   note: string;
 };
 
-const HEADER = "<!-- inkwell-pdf-notes ";
-const START = "<!-- inkwell-pdf-annotation ";
-const COMMENT = "<!-- inkwell-pdf-comment -->";
-const END = "<!-- /inkwell-pdf-annotation -->";
-const RESERVED = /<!--\s*\/?inkwell-pdf-/;
+const HEADER = "<!-- glossa-pdf-notes ";
+const START = "<!-- glossa-pdf-annotation ";
+const COMMENT = "<!-- glossa-pdf-comment -->";
+const END = "<!-- /glossa-pdf-annotation -->";
+const RESERVED = /<!--\s*\/?glossa-pdf-/;
 
 function metadata(value: unknown) {
   return JSON.stringify(value).replace(
@@ -99,7 +99,7 @@ function readAnnotation(value: unknown, note: string): PdfAnnotation {
 }
 
 export function parsePdfNotes(content: string) {
-  const header = content.match(/^<!-- inkwell-pdf-notes (.+) -->\r?\n/);
+  const header = content.match(/^<!-- glossa-pdf-notes (.+) -->\r?\n/);
   if (!header?.[1]) throw new Error("PDF_NOTES_INVALID");
   const info: unknown = JSON.parse(header[1]);
   if (
@@ -115,7 +115,7 @@ export function parsePdfNotes(content: string) {
   }
   const blocks = [
     ...content.matchAll(
-      /<!-- inkwell-pdf-annotation (.+) -->\r?\n([\s\S]*?)<!-- inkwell-pdf-comment -->\r?\n([\s\S]*?)<!-- \/inkwell-pdf-annotation -->/g,
+      /<!-- glossa-pdf-annotation (.+) -->\r?\n([\s\S]*?)<!-- glossa-pdf-comment -->\r?\n([\s\S]*?)<!-- \/glossa-pdf-annotation -->/g,
     ),
   ];
   if (

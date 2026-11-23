@@ -42,7 +42,7 @@ describe("Agent translations", () => {
         name: "Academic Poster",
         description: "Original description",
         version: "1",
-        source: "Inkwell built-in",
+        source: "Glossa built-in",
       },
       (key) => (key === "skillCatalog.posterDescription" ? "Localized description" : key),
     );
@@ -153,7 +153,7 @@ describe("i18n configuration", () => {
   });
 
   it("defines correct storage key", () => {
-    expect(LOCALE_STORAGE_KEY).toBe("inkwell-locale");
+    expect(LOCALE_STORAGE_KEY).toBe("glossa-locale");
   });
 
   it("supports en, zh, and ko", () => {

@@ -4,7 +4,7 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import type { AgentStatus } from "./external-agent-catalog";
 
-export const AGENT_INSTALLATION_CHANGED = "inkwell-agent-installation-changed";
+export const AGENT_INSTALLATION_CHANGED = "glossa-agent-installation-changed";
 
 export function useInstalledAgents() {
   const [statuses, setStatuses] = useState<AgentStatus[] | null>(null);

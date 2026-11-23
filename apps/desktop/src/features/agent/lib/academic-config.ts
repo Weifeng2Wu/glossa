@@ -3,7 +3,7 @@ import { readCapabilityProfiles } from "../../../../../../packages/academic-agen
 import type { AcademicConfig } from "./academic-client";
 
 export const DEFAULT_ACADEMIC_CONFIG: AcademicConfig = {
-  provider: "inkwell-custom",
+  provider: "glossa-custom",
   protocol: "openai",
   baseUrl: "https://api.openai.com/v1",
   model: "",
@@ -24,7 +24,7 @@ function headerConfig(value: object): { customHeaders?: string } {
 export function readConfig(storageKey: string): AcademicConfig {
   try {
     const value: unknown = JSON.parse(
-      appStorage.getItem(storageKey) ?? appStorage.getItem("inkwell-agent-config-v1:") ?? "null",
+      appStorage.getItem(storageKey) ?? appStorage.getItem("glossa-agent-config-v1:") ?? "null",
     );
     if (
       value &&

@@ -287,7 +287,7 @@ export const MonacoEditor = memo(function MonacoEditor({
     const instance = editorRef.current;
     const monaco = monacoRef.current;
     if (!editorReady || !instance || !monaco) return;
-    const opensEnvironment = instance.createContextKey<boolean>("inkwellOpensEnvironment", false);
+    const opensEnvironment = instance.createContextKey<boolean>("glossaOpensEnvironment", false);
     const lineAroundCaret = () => {
       const model = instance.getModel();
       const selection = instance.getSelection();
@@ -339,7 +339,7 @@ export const MonacoEditor = memo(function MonacoEditor({
         );
         instance.pushUndoStop();
       },
-      "editorTextFocus && !editorReadonly && !editorHasMultipleSelections && inkwellOpensEnvironment && !suggestWidgetVisible && !inSnippetMode",
+      "editorTextFocus && !editorReadonly && !editorHasMultipleSelections && glossaOpensEnvironment && !suggestWidgetVisible && !inSnippetMode",
     );
     return () => {
       cursor.dispose();

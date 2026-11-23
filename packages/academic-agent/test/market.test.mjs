@@ -7,8 +7,8 @@ import { SkillLibrary } from "../src/library.mjs";
 import { changeMarketSkill, importSkill, marketCatalog } from "../src/market.mjs";
 
 async function fixture(context) {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-market-"));
-  const source = await mkdtemp(path.join(os.tmpdir(), "inkwell-upload-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-market-"));
+  const source = await mkdtemp(path.join(os.tmpdir(), "glossa-upload-"));
   context.after(() =>
     Promise.all([
       rm(root, { recursive: true, force: true }),

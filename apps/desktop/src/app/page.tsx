@@ -206,8 +206,8 @@ export default function EditorPage() {
 
   useEffect(() => {
     const openTranslation = () => setSettingsTab("translation");
-    window.addEventListener("inkwell-open-translation-settings", openTranslation);
-    return () => window.removeEventListener("inkwell-open-translation-settings", openTranslation);
+    window.addEventListener("glossa-open-translation-settings", openTranslation);
+    return () => window.removeEventListener("glossa-open-translation-settings", openTranslation);
   }, []);
 
   useEffect(() => {

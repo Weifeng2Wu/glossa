@@ -28,7 +28,7 @@ describe("local SQLite API key storage", () => {
     expect(
       apiKeyScope({
         protocol: "",
-        provider: "inkwell-imagegen",
+        provider: "glossa-imagegen",
         baseUrl: "https://api.openai.com/v1",
       }),
     ).not.toBe(scope);

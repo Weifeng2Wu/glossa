@@ -36,8 +36,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       MACOSX_DEPLOYMENT_TARGET: "13.5"
-      INKWELL_UPDATER_PUBLIC_KEY: ${{ github.event_name != 'pull_request' && vars.INKWELL_UPDATER_PUBLIC_KEY || '' }}
-      INKWELL_UNSIGNED_BUILD: ${{ github.event_name == 'pull_request' && '1' || '0' }}
+      GLOSSA_UPDATER_PUBLIC_KEY: ${{ github.event_name != 'pull_request' && vars.GLOSSA_UPDATER_PUBLIC_KEY || '' }}
+      GLOSSA_UNSIGNED_BUILD: ${{ github.event_name == 'pull_request' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v5
@@ -67,7 +67,7 @@ jobs:
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const config = JSON.parse(fs.readFileSync("apps/desktop/src-tauri/tauri.conf.json", "utf8")); const key = process.env.INKWELL_UPDATER_PUBLIC_KEY?.trim() || config.plugins.updater.pubkey.trim(); if (key) fs.appendFileSync(process.env.GITHUB_ENV, `INKWELL_UPDATER_PUBLIC_KEY=${key}\n`); fs.appendFileSync(process.env.GITHUB_OUTPUT, `enabled=${Boolean(key)}\n`);'
+          node --input-type=module -e 'import fs from "node:fs"; const config = JSON.parse(fs.readFileSync("apps/desktop/src-tauri/tauri.conf.json", "utf8")); const key = process.env.GLOSSA_UPDATER_PUBLIC_KEY?.trim() || config.plugins.updater.pubkey.trim(); if (key) fs.appendFileSync(process.env.GITHUB_ENV, `GLOSSA_UPDATER_PUBLIC_KEY=${key}\n`); fs.appendFileSync(process.env.GITHUB_OUTPUT, `enabled=${Boolean(key)}\n`);'
       - name: Packaging unit tests
         run: node --test scripts/test/*.test.mjs
       - name: Agent tests
@@ -88,7 +88,7 @@ jobs:
         shell: pwsh
         run: |
           $drive = [System.IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE)
-          "INKWELL_RUNTIME_RESOURCES=$($drive)iw-agent" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "GLOSSA_RUNTIME_RESOURCES=$($drive)gl-agent" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Build portable desktop installers
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -146,7 +146,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       RELEASE_TAG: ${{ github.ref_name }}
-      INKWELL_UPDATER_PUBLIC_KEY: ${{ vars.INKWELL_UPDATER_PUBLIC_KEY }}
+      GLOSSA_UPDATER_PUBLIC_KEY: ${{ vars.GLOSSA_UPDATER_PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6

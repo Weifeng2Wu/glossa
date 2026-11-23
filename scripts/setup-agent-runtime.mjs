@@ -67,7 +67,7 @@ for (const filename of (await readdir(catalogDirectory))
     .digest("hex");
 }
 await writeFile(
-  path.join(directory, "inkwell-build.json"),
+  path.join(directory, "glossa-build.json"),
   JSON.stringify(
     {
       revision,

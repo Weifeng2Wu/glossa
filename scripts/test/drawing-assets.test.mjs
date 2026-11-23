@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { prepareDrawingAssets } from "../prepare-drawing-assets.mjs";
 
 test("bundles all Excalidraw font families and their licenses for offline use", async (context) => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-drawing-fonts-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-drawing-fonts-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   prepareDrawingAssets(directory);
   const families = await readdir(path.join(directory, "fonts"));

@@ -1,6 +1,6 @@
 import { appStorage, desktopStorage, storageRequest } from "@/lib/storage/app-storage";
 
-export const PDF_POSITION_STORAGE = "inkwell-pdf-position-v1";
+export const PDF_POSITION_STORAGE = "glossa-pdf-position-v1";
 export const PDF_POSITION_LIMIT = 200;
 
 export type PdfReadingMode = "read" | "write";

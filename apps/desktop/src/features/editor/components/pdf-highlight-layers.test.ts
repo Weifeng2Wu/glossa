@@ -141,7 +141,7 @@ describe("live PDF selection preview", () => {
   function page(number: number) {
     const element = document.createElement("div");
     element.dataset.pdfPage = String(number);
-    element.className = "inkwell-pdf-page";
+    element.className = "glossa-pdf-page";
     const layer = document.createElement("div");
     layer.className = "react-pdf__Page__textContent textLayer";
     const span = document.createElement("span");
@@ -432,7 +432,7 @@ describe("live PDF selection preview", () => {
     const pending = deferredRefinement();
     geometry.refineSelection = vi.fn(() => pending.promise);
     if (event === "resize") window.dispatchEvent(new Event("resize"));
-    else pdf.dispatchEvent(new Event("inkwell-pdf-text-layer-ready"));
+    else pdf.dispatchEvent(new Event("glossa-pdf-text-layer-ready"));
     await flushFrames();
     expect(pdf.getAttribute("data-pdf-selection-renderer")).toBe("glyph");
     expect(pdf.querySelector("path")?.getAttribute("d")).toBe(before);
@@ -538,7 +538,7 @@ describe("live PDF selection preview", () => {
     const before = pdf.querySelector("path")?.getAttribute("d");
     await renderPreview("zoomed");
     expect(pdf.querySelector("path")?.getAttribute("d")).toBe(before);
-    pdf.dispatchEvent(new Event("inkwell-pdf-text-layer-ready"));
+    pdf.dispatchEvent(new Event("glossa-pdf-text-layer-ready"));
     expect(frames.size).toBe(1);
     await act(async () => root.render(null));
     expect(frames.size).toBe(0);
@@ -750,7 +750,7 @@ it("keeps selection glyphs transparent and preserves native feedback in forced-c
   expect(css).toContain("mix-blend-mode: multiply");
   expect(css).toContain("@media (forced-colors: active)");
   expect(css).toContain("background: Highlight");
-  const renderer = '[data-pdf-selection-renderer="glyph"] .inkwell-pdf-page .textLayer';
+  const renderer = '[data-pdf-selection-renderer="glyph"] .glossa-pdf-page .textLayer';
   expect(css).toContain(`${renderer} ::selection`);
   const forcedColors = css.slice(css.indexOf("@media (forced-colors: active)"));
   expect(forcedColors).toContain(`${renderer} ::selection`);

@@ -9,7 +9,7 @@ export const DEFAULT_CLOUD_CONFIG = {
   provider: "r2",
   endpoint: "",
   bucket: "",
-  prefix: "inkwell",
+  prefix: "glossa",
   region: "auto",
   enabled: false,
   intervalMinutes: 30,
@@ -27,9 +27,6 @@ const IGNORED = new Set([
   "glossa.sqlite",
   "glossa.sqlite-wal",
   "glossa.sqlite-shm",
-  "inkwell.sqlite",
-  "inkwell.sqlite-wal",
-  "inkwell.sqlite-shm",
 ]);
 const accountFor = (config) =>
   sha256(JSON.stringify(["cloud-backup", config.endpoint, config.bucket]));
@@ -369,8 +366,8 @@ export class CloudBackup {
     }
     const directory = await realpath(parent);
     const identifier = randomUUID();
-    const staging = path.join(directory, `.inkwell-restore-${identifier}`);
-    const destination = path.join(directory, `inkwell-restored-${identifier}`);
+    const staging = path.join(directory, `.glossa-restore-${identifier}`);
+    const destination = path.join(directory, `glossa-restored-${identifier}`);
     await mkdir(staging, { mode: 0o700 });
     try {
       for (const file of manifest.files) {

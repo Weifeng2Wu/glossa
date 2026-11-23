@@ -183,7 +183,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("automatic Agent sessions", () => {
   function saveModel() {
     storage.set(
-      "inkwell-agent-config-v1:/project",
+      "glossa-agent-config-v1:/project",
       JSON.stringify({
         ...DEFAULT_ACADEMIC_CONFIG,
         model: "fixture-model",
@@ -415,7 +415,7 @@ describe("Agent settings auto-save", () => {
     let agent = await settleAgent("/project");
     agent.setConfig({ ...agent.config, model: "updated-model", permissionMode: "auto" });
     agent = await settleAgent("/project");
-    expect(JSON.parse(storage.get("inkwell-agent-config-v1:/project") ?? "null")).toMatchObject({
+    expect(JSON.parse(storage.get("glossa-agent-config-v1:/project") ?? "null")).toMatchObject({
       model: "updated-model",
       permissionMode: "auto",
     });
@@ -435,7 +435,7 @@ describe("Agent settings auto-save", () => {
 
   it("loads another project without overwriting its settings and reuses the endpoint credential", async () => {
     const otherConfig = { ...DEFAULT_ACADEMIC_CONFIG, model: "other-model" };
-    storage.set("inkwell-agent-config-v1:/other", JSON.stringify(otherConfig));
+    storage.set("glossa-agent-config-v1:/other", JSON.stringify(otherConfig));
     const agent = await settleAgent("/project");
     agent.setConfig({ ...agent.config, model: "first-model" });
     agent.setApiKey("fixture-secure-key");
@@ -447,7 +447,7 @@ describe("Agent settings auto-save", () => {
     expect(
       setItem.mock.calls.every(
         ([key, value]) =>
-          key === "inkwell-agent-config-v1:/other" && JSON.parse(value).model === "other-model",
+          key === "glossa-agent-config-v1:/other" && JSON.parse(value).model === "other-model",
       ),
     ).toBe(true);
   });
@@ -476,7 +476,7 @@ describe("Agent settings auto-save", () => {
     agent.setConfig({ ...agent.config, model: "default-model" });
     agent = await settleAgent();
     expect(agent.settingsSaved).toBe(true);
-    expect(JSON.parse(storage.get("inkwell-agent-config-v1:") ?? "null").model).toBe(
+    expect(JSON.parse(storage.get("glossa-agent-config-v1:") ?? "null").model).toBe(
       "default-model",
     );
     agent = await settleAgent("/new-project");

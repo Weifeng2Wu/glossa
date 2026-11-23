@@ -68,11 +68,11 @@ export const PdfSearchLayer = memo(function PdfSearchLayer({ needle, current, ju
   }, [current, jump, hits]);
 
   return (
-    <div ref={layerRef} aria-hidden="true" className="inkwell-pdf-search-layer">
+    <div ref={layerRef} aria-hidden="true" className="glossa-pdf-search-layer">
       {hits?.map((hit) => (
         <span
           key={hit.id}
-          className="inkwell-pdf-search-hit"
+          className="glossa-pdf-search-hit"
           data-pdf-search-current={hit.hit === current ? "" : undefined}
           style={{
             left: `${hit.x * 100}%`,

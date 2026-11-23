@@ -1,7 +1,7 @@
 import { appStorage } from "@/lib/storage/app-storage";
 import type { ExternalAgentId, LaunchOverride } from "./external-agent-catalog";
 
-const KEY = "inkwell-acp-consent-v1";
+const KEY = "glossa-acp-consent-v1";
 const scope = (agent: ExternalAgentId, launch?: LaunchOverride) =>
   JSON.stringify([agent, launch?.command ?? null, launch?.args ?? []]);
 

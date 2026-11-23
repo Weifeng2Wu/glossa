@@ -1,6 +1,6 @@
 import { appStorage } from "@/lib/storage/app-storage";
 
-export const QUICK_START_KEY = "inkwell-quick-start-v1";
+export const QUICK_START_KEY = "glossa-quick-start-v1";
 /** One id per step, in order. Each has a title and body under `onboarding.steps.<id>`. */
 export const QUICK_START_STEP_IDS = [
   "project",

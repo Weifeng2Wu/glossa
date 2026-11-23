@@ -48,7 +48,7 @@ function archive(entries) {
 }
 
 test("ZIP imports nested skills and declared text resources without executable files", async (context) => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-zip-test-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-zip-test-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(
     path.join(root, "registry.json"),

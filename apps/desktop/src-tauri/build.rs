@@ -1,5 +1,5 @@
 fn main() {
-    println!("cargo:rerun-if-env-changed=INKWELL_UPDATER_PUBLIC_KEY");
+    println!("cargo:rerun-if-env-changed=GLOSSA_UPDATER_PUBLIC_KEY");
     let mut attributes = tauri_build::Attributes::new();
     if let Some(value) = std::env::var_os("STATIC_VCRUNTIME") {
         std::env::remove_var("STATIC_VCRUNTIME");

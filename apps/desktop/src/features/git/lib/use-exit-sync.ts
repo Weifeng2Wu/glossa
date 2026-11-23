@@ -37,7 +37,7 @@ const RUNNING_NOTICE_DELAY_MS = 600;
 /**
  * Backs up or offers to upload the project before the application closes.
  *
- * `inkwell-before-close` listeners add promises to the event's `detail`; the
+ * `glossa-before-close` listeners add promises to the event's `detail`; the
  * window closes once they settle. Closing cannot be cancelled, so the dialog
  * only offers to retry or to close anyway.
  */
@@ -163,9 +163,9 @@ export function useExitSync(args: UseExitSyncArgs): ExitSyncController {
         void offerUpload(path, attempt.current);
       }
     };
-    window.addEventListener("inkwell-before-close", beforeClose);
+    window.addEventListener("glossa-before-close", beforeClose);
     return () => {
-      window.removeEventListener("inkwell-before-close", beforeClose);
+      window.removeEventListener("glossa-before-close", beforeClose);
       // Never leave a close request waiting on an unmounted dialog.
       attempt.current += 1;
       session.current?.finish();

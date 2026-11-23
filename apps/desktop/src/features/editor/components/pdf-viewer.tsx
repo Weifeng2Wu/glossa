@@ -151,7 +151,7 @@ export function PdfViewer({
   const [toolbarHeight, setToolbarHeight] = useState(48);
   const containerRef = useRef<HTMLDivElement>(null);
   const onTextLayerRendered = useCallback(() => {
-    rootRef.current?.dispatchEvent(new Event("inkwell-pdf-text-layer-ready"));
+    rootRef.current?.dispatchEvent(new Event("glossa-pdf-text-layer-ready"));
   }, []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const noteInputId = useId();
@@ -207,7 +207,7 @@ export function PdfViewer({
   }, [openFind]);
   useEffect(() => {
     try {
-      const saved = appStorage.getItem("inkwell-pdf-color-v1");
+      const saved = appStorage.getItem("glossa-pdf-color-v1");
       if (isPdfAnnotationColor(saved)) setColor(saved);
     } catch {
       /* The default remains usable if preferences are unavailable. */
@@ -216,7 +216,7 @@ export function PdfViewer({
   function chooseColor(value: PdfAnnotationColor) {
     setColor(value);
     try {
-      appStorage.setItem("inkwell-pdf-color-v1", value);
+      appStorage.setItem("glossa-pdf-color-v1", value);
     } catch {
       /* Annotations still persist their own color. */
     }
@@ -286,8 +286,8 @@ export function PdfViewer({
       const tasks = (event as CustomEvent<Promise<unknown>[]>).detail;
       if (Array.isArray(tasks)) tasks.push(notes.session.flush());
     };
-    window.addEventListener("inkwell-before-close", beforeClose);
-    return () => window.removeEventListener("inkwell-before-close", beforeClose);
+    window.addEventListener("glossa-before-close", beforeClose);
+    return () => window.removeEventListener("glossa-before-close", beforeClose);
   }, [notes.session]);
 
   const onDocumentLoadSuccess = useCallback(async (pdf: PDFDocumentProxy) => {
@@ -902,7 +902,7 @@ export function PdfViewer({
             <div
               key={`pdf-page-${pageNumber}`}
               data-pdf-page={pageNumber}
-              className={`inkwell-pdf-page relative mx-auto mb-4 w-fit shadow-md ${mode === "write" ? "cursor-crosshair" : "cursor-text"}`}
+              className={`glossa-pdf-page relative mx-auto mb-4 w-fit shadow-md ${mode === "write" ? "cursor-crosshair" : "cursor-text"}`}
               onPointerDown={(event) => {
                 const target = event.target;
                 const selection = window.getSelection();

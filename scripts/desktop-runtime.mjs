@@ -21,10 +21,10 @@ export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 export const tauriDirectory = path.join(root, "apps/desktop/src-tauri");
 
 export function runtimeResources(environment = process.env, platform = process.platform) {
-  if (platform === "win32" && environment.INKWELL_RUNTIME_RESOURCES) {
-    if (!path.win32.isAbsolute(environment.INKWELL_RUNTIME_RESOURCES))
+  if (platform === "win32" && environment.GLOSSA_RUNTIME_RESOURCES) {
+    if (!path.win32.isAbsolute(environment.GLOSSA_RUNTIME_RESOURCES))
       throw new Error("Windows runtime resource staging must use an absolute path.");
-    return environment.INKWELL_RUNTIME_RESOURCES;
+    return environment.GLOSSA_RUNTIME_RESOURCES;
   }
   return path.join(tauriDirectory, "resources/agent");
 }
@@ -37,16 +37,16 @@ export async function withRuntimeBundleConfig(
   const configuration = JSON.parse(
     await readFile(path.join(tauriDirectory, "tauri.bundle.conf.json"), "utf8"),
   );
-  if (environment.INKWELL_UPDATER_PUBLIC_KEY?.trim()) {
+  if (environment.GLOSSA_UPDATER_PUBLIC_KEY?.trim()) {
     if (!environment.TAURI_SIGNING_PRIVATE_KEY?.trim())
       throw new Error("Signed update builds require TAURI_SIGNING_PRIVATE_KEY.");
     configuration.bundle.createUpdaterArtifacts = true;
   }
-  if (platform === "win32" && environment.INKWELL_RUNTIME_RESOURCES)
+  if (platform === "win32" && environment.GLOSSA_RUNTIME_RESOURCES)
     configuration.bundle.resources = {
       [windowsResourcePattern(tauriDirectory, runtimeResources(environment, platform))]: "agent/",
     };
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-bundle-config-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-bundle-config-"));
   try {
     const filename = path.join(directory, "tauri.bundle.conf.json");
     await writeFile(filename, JSON.stringify(configuration));
@@ -394,7 +394,7 @@ export async function prepareRuntime() {
   );
   let ready = false;
   try {
-    const metadata = JSON.parse(await readFile(path.join(checkout, "inkwell-build.json"), "utf8"));
+    const metadata = JSON.parse(await readFile(path.join(checkout, "glossa-build.json"), "utf8"));
     ready =
       metadata.revision === source.revision &&
       metadata.platform === process.platform &&
@@ -404,7 +404,7 @@ export async function prepareRuntime() {
     ready = false;
   }
   if (!ready) run(process.execPath, [path.join(root, "scripts/setup-agent-runtime.mjs")]);
-  const temporary = await mkdtemp(path.join(os.tmpdir(), "inkwell-package-"));
+  const temporary = await mkdtemp(path.join(os.tmpdir(), "glossa-package-"));
   try {
     const deployed = path.join(temporary, "deployed");
     console.log("Deploying production Agent dependencies...");
@@ -453,8 +453,8 @@ export async function prepareRuntime() {
     await copyFile(path.join(distribution, "LICENSE"), path.join(resources, "NODE-LICENSE"));
     await copyFile(path.join(checkout, "LICENSE"), path.join(resources, "AGENT-LICENSE"));
     await copyFile(
-      path.join(checkout, "inkwell-build.json"),
-      path.join(resources, "inkwell-build.json"),
+      path.join(checkout, "glossa-build.json"),
+      path.join(resources, "glossa-build.json"),
     );
     const executable = path.join(
       binaries,

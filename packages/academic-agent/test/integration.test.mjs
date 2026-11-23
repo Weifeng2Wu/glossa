@@ -16,7 +16,7 @@ const source = JSON.parse(
   await readFile(new URL("../runtime-source.json", import.meta.url), "utf8"),
 );
 const sdk = path.join(
-  process.env.INKWELL_AGENT_RUNTIME_ROOT ??
+  process.env.GLOSSA_AGENT_RUNTIME_ROOT ??
     path.join(
       fileURLToPath(new URL("../../../.cache/agent-runtime/", import.meta.url)),
       `${source.revision}-${process.platform}-${process.arch}`,
@@ -28,7 +28,7 @@ test("real runtime: lazy skills, tool loop, edit approval, isolated resume, canc
   skip: !existsSync(sdk) && "Run agent:setup to build the pinned runtime first.",
   timeout: 180_000,
 }, async (context) => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-integration-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-integration-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   const project = path.join(directory, "project");
   const data = path.join(directory, "data");
@@ -176,7 +176,7 @@ test("real runtime: lazy skills, tool loop, edit approval, isolated resume, canc
     [fileURLToPath(new URL("../src/bridge.mjs", import.meta.url)), project, data, sdk],
     {
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, INKWELL_AGENT_AUTH_DIR: path.join(data, "credentials") },
+      env: { ...process.env, GLOSSA_AGENT_AUTH_DIR: path.join(data, "credentials") },
     },
   );
   let diagnostics = "";
@@ -255,7 +255,7 @@ test("real runtime: lazy skills, tool loop, edit approval, isolated resume, canc
   assert.equal(discovery.capabilities.fixture.vision.supported, false);
   assert.equal(discovery.capabilities.fixture.vision.source, "catalog");
   assert.equal(connection.model, "fixture");
-  assert.equal(connection.provider, "inkwell-custom");
+  assert.equal(connection.provider, "glossa-custom");
   const gitDraft = await command("git_commit", {
     ...sharedConfiguration,
     text: "Generate a commit message from this diff: +example",

@@ -21,7 +21,7 @@ const snapshot = {
   name: "Literature Review",
   description:
     "Summarize papers from your reading notes, compare them in a literature matrix, draft related-work sections that cite only entries in your .bib library, audit citations, and plan what to read next. Never invents sources, quotes or page numbers.",
-  source: "Inkwell built-in",
+  source: "Glossa built-in",
   local: true,
   revision: createHash("sha1").update(JSON.stringify(files)).digest("hex"),
   files,

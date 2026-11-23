@@ -15,7 +15,7 @@ export function withModelProtocol(
   return {
     ...config,
     protocol,
-    provider: "inkwell-custom",
+    provider: "glossa-custom",
     baseUrl: !endpoint || isDefaultEndpoint ? PROTOCOL_URLS[protocol] : config.baseUrl,
   };
 }

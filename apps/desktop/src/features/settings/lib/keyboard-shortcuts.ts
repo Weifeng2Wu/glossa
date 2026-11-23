@@ -32,7 +32,7 @@ export const SHORTCUT_CATEGORIES: readonly ShortcutCategory[] = [
   "chat",
 ];
 export type ShortcutBindings = Record<ShortcutId, string>;
-export const SHORTCUT_STORAGE_KEY = "inkwell-keyboard-shortcuts-v1";
+export const SHORTCUT_STORAGE_KEY = "glossa-keyboard-shortcuts-v1";
 export const DEFAULT_SHORTCUTS = Object.fromEntries(
   SHORTCUTS.map((item) => [item.id, item.default]),
 ) as ShortcutBindings;

@@ -7,7 +7,7 @@ import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 test("standalone API checks return independent results and failures without a chat session", async (t) => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-api-check-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-api-check-"));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const sdk = path.join(directory, "sdk.mjs");
   await writeFile(

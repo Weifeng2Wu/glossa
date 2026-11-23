@@ -14,18 +14,18 @@ test("matches independent Smithy SigV4 signatures for paginated GET and encoded 
       pathname: "/test-bucket/",
       query: {
         "list-type": "2",
-        prefix: "inkwell/snapshots/",
+        prefix: "glossa/snapshots/",
         "continuation-token": "some+token==",
       },
       body: "",
-      signature: "7db7bd459bc782b5b54feb075b7d9b3c95da0d7df0c29a789837a19fc306f612",
+      signature: "9964f81ef60f3fd38b1ae8c69cc69d93151c2dd4db826feb0bdc94991365d39c",
     },
     {
       method: "PUT",
-      pathname: "/test-bucket/inkwell/%E7%AC%94%E8%AE%B0%20%21.md",
+      pathname: "/test-bucket/glossa/%E7%AC%94%E8%AE%B0%20%21.md",
       query: {},
       body: "backup content",
-      signature: "56b09b0d2c2de3101632ad4dbe454750ed32b14272f40a5e72b83948956c9801",
+      signature: "f306625727475731b80cff469b0aadd31c6e754c04467c4fbfcfebec67fa8425",
     },
   ]) {
     const url = new URL(`https://s3.us-east-1.amazonaws.com${fixture.pathname}`);
@@ -52,7 +52,7 @@ test("rejects invalid XML, oversized pages and pagination loops", async () => {
       provider: "r2",
       endpoint: "https://example.com",
       bucket: "test-bucket",
-      prefix: "inkwell",
+      prefix: "glossa",
       enabled: false,
       intervalMinutes: 30,
     },
@@ -64,12 +64,12 @@ test("rejects invalid XML, oversized pages and pagination loops", async () => {
     "x".repeat(4 * 1024 * 1024 + 1),
   ]) {
     store.request = async () => new Response(text);
-    await assert.rejects(store.list("inkwell/snapshots/"), /CLOUD_RESPONSE|CLOUD_SIZE_LIMIT/);
+    await assert.rejects(store.list("glossa/snapshots/"), /CLOUD_RESPONSE|CLOUD_SIZE_LIMIT/);
   }
   let page = 0;
   store.request = async () =>
     new Response(
       `<ListBucketResult><IsTruncated>true</IsTruncated><NextContinuationToken>${page++ % 2 ? "second" : "first"}</NextContinuationToken></ListBucketResult>`,
     );
-  await assert.rejects(store.list("inkwell/snapshots/"), /CLOUD_RESPONSE/);
+  await assert.rejects(store.list("glossa/snapshots/"), /CLOUD_RESPONSE/);
 });

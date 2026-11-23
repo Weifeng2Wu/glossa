@@ -232,7 +232,7 @@ export function AcademicAgentSettings({
                 <AgentApiKeyInput
                   key={apiKeyScope({
                     protocol: "",
-                    provider: "inkwell-imagegen",
+                    provider: "glossa-imagegen",
                     baseUrl: config.imageGeneration.baseUrl,
                   })}
                   id={`${fieldId}-image-key`}
@@ -283,7 +283,7 @@ export function AcademicAgentSettings({
                         {
                           ...config,
                           protocol: "openai",
-                          provider: "inkwell-imagegen",
+                          provider: "glossa-imagegen",
                           baseUrl: config.imageGeneration.baseUrl,
                           model: config.imageGeneration.model,
                           customHeaders: config.imageGeneration.customHeaders,
@@ -368,7 +368,7 @@ export function AcademicAgentSettings({
                 <AgentApiKeyInput
                   key={apiKeyScope({
                     protocol: "",
-                    provider: "inkwell-web-search",
+                    provider: "glossa-web-search",
                     baseUrl: config.webSearch.baseUrl,
                   })}
                   id={`${fieldId}-search-key`}

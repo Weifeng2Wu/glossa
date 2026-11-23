@@ -22,7 +22,7 @@ const snapshot = {
   name: "Academic Poster",
   description:
     "Create a freeform Glossa poster from verified paper content and original figures. Text, shapes and figures remain individually editable. Export to PPTX, SVG, PDF or images; visual references are optional.",
-  source: "Inkwell built-in",
+  source: "Glossa built-in",
   local: true,
   revision: createHash("sha1").update(JSON.stringify(files)).digest("hex"),
   files,

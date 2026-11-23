@@ -11,7 +11,7 @@ import { ObjectStore, sha256, validateCloudConfig } from "../src/object-store.mj
 import { AppDatabase } from "../src/storage.mjs";
 
 async function fixture(context) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-cloud-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-cloud-"));
   const project = path.join(directory, "研究项目");
   await mkdir(project);
   const objects = new Map();
@@ -56,7 +56,7 @@ async function fixture(context) {
     return finish(200, request.method === "HEAD" ? "" : objects.get(key));
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  const database = new AppDatabase(path.join(directory, "db", "inkwell.sqlite"));
+  const database = new AppDatabase(path.join(directory, "db", "glossa.sqlite"));
   const backup = new CloudBackup(database);
   const config = {
     ...DEFAULT_CLOUD_CONFIG,
@@ -117,7 +117,7 @@ test("incremental snapshots restore files and preserve older versions and deleti
   const third = await backup.backup(project);
   assert.equal(third.uploadedFiles, 0);
   assert.equal(third.fileCount, 1);
-  objects.set("inkwell/snapshots/unrelated.json", Buffer.from("{}"));
+  objects.set("glossa/snapshots/unrelated.json", Buffer.from("{}"));
   const history = await backup.list();
   assert.equal(history.length, 3);
   assert.equal(history[0].project, "研究项目");
@@ -141,14 +141,14 @@ test("failed uploads publish no snapshot and corrupt restores leave no destinati
   const { backup, project, directory, objects, failUploads } = await fixture(context);
   await writeFile(path.join(project, "note.md"), "original");
   const first = await backup.backup(project);
-  objects.set(`inkwell/blobs/${sha256("original")}`, Buffer.from("tampered"));
+  objects.set(`glossa/blobs/${sha256("original")}`, Buffer.from("tampered"));
   await assert.rejects(backup.restore(first.key, directory), /CLOUD_INTEGRITY/);
   assert.equal(
     (await readdir(directory)).some((name) => name.includes("restore")),
     false,
   );
   await assert.rejects(
-    backup.restore("inkwell/snapshots/../../other.json", directory),
+    backup.restore("glossa/snapshots/../../other.json", directory),
     /CLOUD_MANIFEST/,
   );
   await writeFile(path.join(project, "note.md"), "changed");
@@ -180,7 +180,7 @@ test("the native service JSON protocol supports backup and returns sanitized sta
     new Promise((resolve, reject) => {
       const child = spawn(process.execPath, [
         fileURLToPath(new URL("../src/cloud-backup.mjs", import.meta.url)),
-        path.join(directory, "db", "inkwell.sqlite"),
+        path.join(directory, "db", "glossa.sqlite"),
       ]);
       let stdout = "";
       let stderr = "";

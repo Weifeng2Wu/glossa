@@ -6,8 +6,8 @@ import { test } from "node:test";
 import { AppDatabase } from "../src/storage.mjs";
 
 test("review state and skill sync state are durable isolated application records", async (context) => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-records-"));
-  const filename = path.join(directory, "inkwell.sqlite");
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-records-"));
+  const filename = path.join(directory, "glossa.sqlite");
   context.after(() => rm(directory, { recursive: true, force: true }));
   const database = new AppDatabase(filename);
   try {

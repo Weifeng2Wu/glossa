@@ -14,7 +14,7 @@ afterEach(async () => {
 });
 
 async function fixture() {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-skills-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-skills-"));
   directories.push(directory);
   await mkdir(path.join(directory, "fixture"));
   const instruction = "Fixture instructions; not a bundled product skill.";

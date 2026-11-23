@@ -12,7 +12,7 @@ use tauri_plugin_opener::OpenerExt;
 
 #[tauri::command]
 fn app_updates_enabled() -> bool {
-    option_env!("INKWELL_UPDATER_PUBLIC_KEY").is_some_and(|key| !key.trim().is_empty())
+    option_env!("GLOSSA_UPDATER_PUBLIC_KEY").is_some_and(|key| !key.trim().is_empty())
         && !cfg!(debug_assertions)
 }
 
@@ -48,7 +48,7 @@ fn is_external_url(url: &url::Url, dev_port: u16) -> bool {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut updater = tauri_plugin_updater::Builder::new();
-    if let Some(key) = option_env!("INKWELL_UPDATER_PUBLIC_KEY").filter(|key| !key.trim().is_empty()) {
+    if let Some(key) = option_env!("GLOSSA_UPDATER_PUBLIC_KEY").filter(|key| !key.trim().is_empty()) {
         updater = updater.pubkey(key.trim());
     }
     tauri::Builder::default()

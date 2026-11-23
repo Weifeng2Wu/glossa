@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 import { AppDatabase, supportedStorageKey } from "../src/storage.mjs";
 
 async function fixture(context) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-database-"));
-  const filename = path.join(directory, "inkwell.sqlite");
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-database-"));
+  const filename = path.join(directory, "glossa.sqlite");
   const database = new AppDatabase(filename);
   context.after(() => {
     database.close();
@@ -27,9 +27,9 @@ test("every frontend-owned preference is accepted by the database key allowlist"
   assert(list, "Frontend preference key registry was not found");
   const keys = [...list.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
   for (const key of [
-    "inkwell-translation-v1",
-    "inkwell-translation-profiles-v1",
-    "inkwell-pdf-color-v1",
+    "glossa-translation-v1",
+    "glossa-translation-profiles-v1",
+    "glossa-pdf-color-v1",
   ])
     assert(keys.includes(key));
   for (const key of keys)
@@ -51,26 +51,26 @@ test("translation selection, provider profiles and annotation color save togethe
     llm: { ...config, provider: "llm", baseUrl: "https://models.example/v1", model: "translator" },
   };
   const entries = [
-    ["inkwell-translation-v1", JSON.stringify(config)],
-    ["inkwell-translation-profiles-v1", JSON.stringify(profiles)],
-    ["inkwell-pdf-color-v1", "success"],
+    ["glossa-translation-v1", JSON.stringify(config)],
+    ["glossa-translation-profiles-v1", JSON.stringify(profiles)],
+    ["glossa-pdf-color-v1", "success"],
     ["theme", "nord"],
   ];
   assert.deepEqual(database.request({ type: "settings_write", entries }), { ok: true });
   const reopened = new AppDatabase(filename);
   try {
     const settings = reopened.request({ type: "bootstrap" }).settings;
-    assert.deepEqual(JSON.parse(settings["inkwell-translation-v1"]), config);
-    assert.deepEqual(JSON.parse(settings["inkwell-translation-profiles-v1"]), profiles);
-    assert.equal(settings["inkwell-pdf-color-v1"], "success");
+    assert.deepEqual(JSON.parse(settings["glossa-translation-v1"]), config);
+    assert.deepEqual(JSON.parse(settings["glossa-translation-profiles-v1"]), profiles);
+    assert.equal(settings["glossa-pdf-color-v1"], "success");
     assert.equal(settings.theme, "nord");
     const selected = profiles.llm;
     reopened.request({
       type: "settings_write",
-      entries: [["inkwell-translation-v1", JSON.stringify(selected)]],
+      entries: [["glossa-translation-v1", JSON.stringify(selected)]],
     });
-    assert.deepEqual(JSON.parse(database.settings()["inkwell-translation-v1"]), selected);
-    assert.deepEqual(JSON.parse(database.settings()["inkwell-translation-profiles-v1"]), profiles);
+    assert.deepEqual(JSON.parse(database.settings()["glossa-translation-v1"]), selected);
+    assert.deepEqual(JSON.parse(database.settings()["glossa-translation-profiles-v1"]), profiles);
   } finally {
     reopened.close();
   }
@@ -94,9 +94,9 @@ test("the standalone storage service accepts the desktop translation-save JSON p
   const saving = call({
     type: "settings_write",
     entries: [
-      ["inkwell-translation-v1", JSON.stringify(config)],
-      ["inkwell-translation-profiles-v1", JSON.stringify({ transmart: config })],
-      ["inkwell-pdf-color-v1", "info"],
+      ["glossa-translation-v1", JSON.stringify(config)],
+      ["glossa-translation-profiles-v1", JSON.stringify({ transmart: config })],
+      ["glossa-pdf-color-v1", "info"],
     ],
   });
   assert.equal(saving.status, 0, saving.stderr);
@@ -104,9 +104,9 @@ test("the standalone storage service accepts the desktop translation-save JSON p
   const loading = call({ type: "bootstrap" });
   assert.equal(loading.status, 0, loading.stderr);
   const settings = JSON.parse(loading.stdout).settings;
-  assert.deepEqual(JSON.parse(settings["inkwell-translation-v1"]), config);
-  assert.deepEqual(JSON.parse(settings["inkwell-translation-profiles-v1"]), { transmart: config });
-  assert.equal(settings["inkwell-pdf-color-v1"], "info");
+  assert.deepEqual(JSON.parse(settings["glossa-translation-v1"]), config);
+  assert.deepEqual(JSON.parse(settings["glossa-translation-profiles-v1"]), { transmart: config });
+  assert.equal(settings["glossa-pdf-color-v1"], "info");
 });
 test("translation migration and preference writes strip keys without deleting saved credentials", async (context) => {
   const { database } = await fixture(context);
@@ -130,19 +130,19 @@ test("translation migration and preference writes strip keys without deleting sa
   database.request({
     type: "bootstrap",
     entries: [
-      ["inkwell-translation-v1", JSON.stringify(unsafe)],
-      ["inkwell-translation-profiles-v1", JSON.stringify(profiles)],
+      ["glossa-translation-v1", JSON.stringify(unsafe)],
+      ["glossa-translation-profiles-v1", JSON.stringify(profiles)],
     ],
   });
   database.request({
     type: "settings_write",
     entries: [
-      ["inkwell-translation-v1", JSON.stringify(unsafe)],
-      ["inkwell-translation-profiles-v1", JSON.stringify(profiles)],
+      ["glossa-translation-v1", JSON.stringify(unsafe)],
+      ["glossa-translation-profiles-v1", JSON.stringify(profiles)],
     ],
   });
-  assert.deepEqual(JSON.parse(database.settings()["inkwell-translation-v1"]), config);
-  assert.deepEqual(JSON.parse(database.settings()["inkwell-translation-profiles-v1"]), {
+  assert.deepEqual(JSON.parse(database.settings()["glossa-translation-v1"]), config);
+  assert.deepEqual(JSON.parse(database.settings()["glossa-translation-profiles-v1"]), {
     llm: config,
   });
   const backup = database.db.prepare("SELECT * FROM legacy_backup").all();
@@ -165,7 +165,7 @@ test("invalid translation preferences cannot partially overwrite a settings batc
           type: "settings_write",
           entries: [
             ["theme", "light"],
-            ["inkwell-translation-v1", JSON.stringify({ provider: "llm", baseUrl })],
+            ["glossa-translation-v1", JSON.stringify({ provider: "llm", baseUrl })],
           ],
         }),
       /Invalid translation endpoint/,
@@ -175,11 +175,11 @@ test("invalid translation preferences cannot partially overwrite a settings batc
 });
 test("automatic update preference survives a database restart", async (context) => {
   const { database, filename } = await fixture(context);
-  database.request({ type: "settings_write", entries: [["inkwell-auto-update-v1", "true"]] });
+  database.request({ type: "settings_write", entries: [["glossa-auto-update-v1", "true"]] });
   const reopened = new AppDatabase(filename);
   try {
     assert.equal(
-      reopened.request({ type: "bootstrap" }).settings["inkwell-auto-update-v1"],
+      reopened.request({ type: "bootstrap" }).settings["glossa-auto-update-v1"],
       "true",
     );
   } finally {
@@ -196,11 +196,11 @@ const record = (id = "one", modified = "2026-10-17T00:00:00Z") => ({
 test("ACP connection consent persists in the application database across restarts", async (context) => {
   const { database, filename } = await fixture(context);
   const consent = JSON.stringify([JSON.stringify(["codex", null, []])]);
-  database.request({ type: "settings_write", entries: [["inkwell-acp-consent-v1", consent]] });
+  database.request({ type: "settings_write", entries: [["glossa-acp-consent-v1", consent]] });
   const reopened = new AppDatabase(filename);
   try {
     assert.equal(
-      reopened.request({ type: "bootstrap" }).settings["inkwell-acp-consent-v1"],
+      reopened.request({ type: "bootstrap" }).settings["glossa-acp-consent-v1"],
       consent,
     );
   } finally {
@@ -211,10 +211,10 @@ test("ACP connection consent persists in the application database across restart
 test("quick start progress survives a database restart", async (context) => {
   const { database, filename } = await fixture(context);
   const state = JSON.stringify({ step: 3, completed: false, dismissed: true });
-  database.request({ type: "settings_write", entries: [["inkwell-quick-start-v1", state]] });
+  database.request({ type: "settings_write", entries: [["glossa-quick-start-v1", state]] });
   const reopened = new AppDatabase(filename);
   try {
-    assert.equal(reopened.request({ type: "bootstrap" }).settings["inkwell-quick-start-v1"], state);
+    assert.equal(reopened.request({ type: "bootstrap" }).settings["glossa-quick-start-v1"], state);
   } finally {
     reopened.close();
   }
@@ -224,8 +224,8 @@ test("legacy migration is transactional, durable and idempotent", async (context
   const { database, filename } = await fixture(context);
   const entries = [
     ["editor-settings", '{"fontSize":14}'],
-    [`inkwell-external-chat-v1:${scope}`, JSON.stringify([record()])],
-    [`inkwell-conversation-archive-v1:${scope}`, '["one"]'],
+    [`glossa-external-chat-v1:${scope}`, JSON.stringify([record()])],
+    [`glossa-conversation-archive-v1:${scope}`, '["one"]'],
   ];
   database.request({ type: "bootstrap", entries });
   database.request({ type: "settings_write", entries: [["editor-settings", '{"fontSize":18}']] });
@@ -247,7 +247,7 @@ test("malformed legacy history rolls back without consuming migration markers", 
   assert.throws(() =>
     database.migrate([
       ["theme", "nord"],
-      [`inkwell-external-chat-v1:${scope}`, "invalid"],
+      [`glossa-external-chat-v1:${scope}`, "invalid"],
     ]),
   );
   assert.deepEqual(database.settings(), {});
@@ -301,8 +301,8 @@ test("provider secrets never enter ordinary settings or migration backups", asyn
     skillIds: [],
   });
   database.migrate([
-    ["inkwell-agent-config-v1:/project", config],
-    ["inkwell-layout-parser-v1", config],
+    ["glossa-agent-config-v1:/project", config],
+    ["glossa-layout-parser-v1", config],
     ["unknown-secret", "secret-value"],
   ]);
   const settings = JSON.stringify(database.settings());
@@ -311,7 +311,7 @@ test("provider secrets never enter ordinary settings or migration backups", asyn
     settings + backup,
     /secret-value|secret-token|nested-secret-value|search-secret-value|capability-secret-value/,
   );
-  const saved = JSON.parse(database.settings()["inkwell-agent-config-v1:/project"]);
+  const saved = JSON.parse(database.settings()["glossa-agent-config-v1:/project"]);
   assert.deepEqual(saved.webSearch, { baseUrl: "https://api.tavily.com" });
   assert.deepEqual(saved.modelCapabilities.fixture, {
     vision: { supported: true, source: "manual" },
@@ -319,7 +319,7 @@ test("provider secrets never enter ordinary settings or migration backups", asyn
     web: { supported: false, source: "runtime" },
   });
   assert.deepEqual(
-    JSON.parse(database.settings()["inkwell-agent-config-v1:/project"]).imageGeneration,
+    JSON.parse(database.settings()["glossa-agent-config-v1:/project"]).imageGeneration,
     {
       baseUrl: "https://images.example/v1",
       model: "image-model",

@@ -144,7 +144,7 @@ export function searchLibrary(
 
 export const LIBRARY_SORT_ORDERS = ["added", "year", "author", "title"] as const;
 export type LibrarySortOrder = (typeof LIBRARY_SORT_ORDERS)[number];
-export const LIBRARY_SORT_STORAGE_KEY = "inkwell-library-sort-v1";
+export const LIBRARY_SORT_STORAGE_KEY = "glossa-library-sort-v1";
 
 /** The saved sort order; anything unknown falls back to most recently added. */
 export function parseSortOrder(value: string | null | undefined): LibrarySortOrder {

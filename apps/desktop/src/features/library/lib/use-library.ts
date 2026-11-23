@@ -55,7 +55,7 @@ function currentBibliographies(
 }
 
 function exclusionKey(projectPath: string) {
-  return `inkwell-library-excluded-pdfs:${encodeURIComponent(projectPath)}`;
+  return `glossa-library-excluded-pdfs:${encodeURIComponent(projectPath)}`;
 }
 
 function excludedPdfs(projectPath: string | null): Set<string> {

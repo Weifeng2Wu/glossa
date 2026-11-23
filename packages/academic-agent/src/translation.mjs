@@ -201,7 +201,7 @@ export async function translate(request, dependencies = {}) {
         "User-Agent": "Glossa Translation",
       },
       body: JSON.stringify({
-        header: { fn: "auto_translation", client_key: `inkwell-${randomUUID()}` },
+        header: { fn: "auto_translation", client_key: `glossa-${randomUUID()}` },
         type: "plain",
         model_category: "normal",
         source: { lang: lang(config.source), text_list: [text] },

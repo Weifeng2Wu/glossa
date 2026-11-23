@@ -60,7 +60,7 @@ test("rejects fabricated citations, missing rules and invalid destinations", () 
 });
 
 test("preview does not install; explicit creation imports a reusable skill with verified resources", async (context) => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "inkwell-format-test-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "glossa-format-test-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   await writeFile(
     path.join(directory, "registry.json"),

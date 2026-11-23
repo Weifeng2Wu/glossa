@@ -34,7 +34,7 @@ export function mindmapFontFamily(font = "system-ui") {
 }
 
 function parseLabel(value: string): Pick<MindmapNode, "text" | "style" | "side"> {
-  const marker = "<!-- inkwell-mindmap ";
+  const marker = "<!-- glossa-mindmap ";
   const start = value.indexOf(marker);
   const text = (start < 0 ? value : value.slice(0, start)).trim();
   if (!text || text.length > 2000) throw new Error("mindmap.invalid");
@@ -118,7 +118,7 @@ export function serializeMindmap(root: MindmapNode): string {
       ...(node.style && Object.keys(node.style).length ? { style: node.style } : {}),
       ...(node.side ? { side: node.side } : {}),
     };
-    return `${node.text}${Object.keys(metadata).length ? ` <!-- inkwell-mindmap ${JSON.stringify(metadata)} -->` : ""}`;
+    return `${node.text}${Object.keys(metadata).length ? ` <!-- glossa-mindmap ${JSON.stringify(metadata)} -->` : ""}`;
   };
   const lines = [`# ${label(root)}`, ""];
   function visit(node: MindmapNode, depth: number) {

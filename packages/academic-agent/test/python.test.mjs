@@ -7,7 +7,7 @@ import { digest, SkillLibrary } from "../src/library.mjs";
 import { createPythonTool } from "../src/python.mjs";
 
 async function workspace(context) {
-  const root = await mkdtemp(path.join(os.tmpdir(), "inkwell-python-test-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "glossa-python-test-"));
   context.after(() => rm(root, { recursive: true, force: true }));
   return realpath(root);
 }
@@ -16,7 +16,7 @@ test("Python runs code in the review copy, returns arguments and errors, and cle
   const root = await workspace(context);
   const tool = createPythonTool(root, "auto");
   const result = await tool.execute("call", {
-    code: "import pathlib, sys, os\npathlib.Path('result.txt').write_text('computed')\nprint(6*7, sys.argv[1], os.environ['INKWELL_PYTHON_WORK'])",
+    code: "import pathlib, sys, os\npathlib.Path('result.txt').write_text('computed')\nprint(6*7, sys.argv[1], os.environ['GLOSSA_PYTHON_WORK'])",
     args: ["argument with spaces 中文 ✅"],
   });
   assert.equal(result.details.exitCode, 0);
@@ -51,7 +51,7 @@ test("restricted mode disables Python and denied code never runs", async (contex
 
 test("Python does not inherit model credentials or Python startup settings", async (context) => {
   const root = await workspace(context);
-  const secretKey = "INKWELL_TEST_PYTHON_SECRET";
+  const secretKey = "GLOSSA_TEST_PYTHON_SECRET";
   const previous = process.env[secretKey];
   process.env[secretKey] = "private-value";
   context.after(() => {

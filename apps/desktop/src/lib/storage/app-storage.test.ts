@@ -109,7 +109,7 @@ describe("SQLite settings adapter", () => {
     expect(appStorage.getItem("theme")).toBe("light");
   });
   it("does not reread migrated conversation payloads on later desktop launches", async () => {
-    const key = 'inkwell-external-chat-v1:["/project","codex"]';
+    const key = 'glossa-external-chat-v1:["/project","codex"]';
     setupDesktop([[key, "large old payload"]]);
     const read = vi.spyOn(localStorage, "getItem");
     vi.mocked(invoke).mockResolvedValueOnce({ settings: {}, migratedKeys: [key] });

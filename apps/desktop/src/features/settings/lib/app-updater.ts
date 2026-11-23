@@ -36,7 +36,7 @@ let pending: Update | null = null;
 let busy = false;
 let initialization: Promise<void> | undefined;
 const listeners = new Set<() => void>();
-const preferenceKey = "inkwell-auto-update-v1";
+const preferenceKey = "glossa-auto-update-v1";
 function patch(change: Partial<UpdateState>) {
   state = { ...state, ...change };
   for (const listener of listeners) listener();
@@ -162,7 +162,7 @@ export async function restartAfterUpdate() {
 async function saveBeforeUpdate() {
   if (typeof window !== "undefined") {
     const tasks: Promise<unknown>[] = [];
-    window.dispatchEvent(new CustomEvent("inkwell-before-close", { detail: tasks }));
+    window.dispatchEvent(new CustomEvent("glossa-before-close", { detail: tasks }));
     await Promise.all(tasks);
   }
   await flushAppStorage();

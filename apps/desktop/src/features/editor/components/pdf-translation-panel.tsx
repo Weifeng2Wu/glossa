@@ -171,7 +171,7 @@ export function PdfTranslationPanel({
           disabled={saving}
           onClick={() => {
             onClose();
-            window.dispatchEvent(new Event("inkwell-open-translation-settings"));
+            window.dispatchEvent(new Event("glossa-open-translation-settings"));
           }}
         >
           {t("translation.settings")}

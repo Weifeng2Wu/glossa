@@ -200,12 +200,6 @@ fn all_agent_roots(app: &AppHandle) -> Result<Vec<PathBuf>, String> {
         if !roots.contains(&current_app_agents) {
             roots.push(current_app_agents);
         }
-        if let Some(legacy_app_data) = super::storage::legacy_app_data_dir(&app_data) {
-            let legacy_agents = legacy_app_data.join("external-agents");
-            if !roots.contains(&legacy_agents) {
-                roots.push(legacy_agents);
-            }
-        }
     }
     Ok(roots)
 }
@@ -371,18 +365,18 @@ mod tests {
     }
 
     #[test]
-    fn agent_search_directories_checks_primary_and_legacy_roots() {
+    fn agent_search_directories_checks_primary_and_appdata_roots() {
         let primary = PathBuf::from("home/.glossa/external-agents");
-        let legacy = PathBuf::from("appdata/com.inkwell.app/external-agents");
+        let appdata = PathBuf::from("appdata/com.glossa.app/external-agents");
         let env = PathBuf::from("system/bin");
-        let dirs = agent_search_directories(&[primary.clone(), legacy.clone()], "codex", vec![env.clone()]);
+        let dirs = agent_search_directories(&[primary.clone(), appdata.clone()], "codex", vec![env.clone()]);
         assert_eq!(
             dirs[..5],
             [
                 primary.join("codex/node_modules/.bin"),
                 primary.join("codex/bin"),
-                legacy.join("codex/node_modules/.bin"),
-                legacy.join("codex/bin"),
+                appdata.join("codex/node_modules/.bin"),
+                appdata.join("codex/bin"),
                 env,
             ]
         );
@@ -1236,7 +1230,6 @@ pub async fn agent_shared_skills(
         .arg(directory.join("shared-skills.mjs"))
         .arg(directory.join("skills"))
         .env("GLOSSA_DATABASE_PATH", &database)
-        .env("INKWELL_DATABASE_PATH", &database)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

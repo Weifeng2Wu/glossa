@@ -18,7 +18,7 @@ export function ScrollArea({
       className={className}
       options={{
         scrollbars: {
-          theme: "os-theme-inkwell",
+          theme: "os-theme-glossa",
           autoHide,
           autoHideDelay: 400,
         },

@@ -1093,17 +1093,7 @@ pub async fn git_add_remote(dir: String, name: String, url: String) -> Result<()
 
 #[cfg(any(windows, test))]
 async fn gh_command_with_paths(paths: &[std::path::PathBuf]) -> tokio::process::Command {
-    let mut program = std::path::PathBuf::from("gh");
-    for directory in paths {
-        let candidate = directory.join("gh.exe");
-        if tokio::fs::metadata(&candidate)
-            .await
-            .is_ok_and(|metadata| metadata.is_file())
-        {
-            program = candidate;
-            break;
-        }
-    }
+    let program = super::util::resolve_cli_program_in_paths(std::ffi::OsStr::new("gh"), paths);
     let mut cmd = command(program);
     cmd.env(
         "PATH",
@@ -1229,6 +1219,38 @@ fn gh_installation_status(output: std::io::Result<std::process::Output>) -> Resu
     }
 }
 
+fn parse_gh_legacy_status(success: bool, stdout: &str, stderr: &str) -> GhStatus {
+    let combined = format!("{stdout}\n{stderr}");
+    let username = combined
+        .lines()
+        .find_map(|line| {
+            let pos = line.find("account ")?;
+            let rest = &line[pos + 8..];
+            let candidate = rest.split_whitespace().next().unwrap_or("");
+            if candidate.is_empty() {
+                None
+            } else {
+                Some(candidate.to_string())
+            }
+        })
+        .unwrap_or_default();
+    let accounts = if username.is_empty() {
+        Vec::new()
+    } else {
+        vec![GhAccount {
+            username: username.clone(),
+            active: true,
+            authenticated: success,
+        }]
+    };
+    GhStatus {
+        installed: true,
+        authenticated: success,
+        username,
+        accounts,
+    }
+}
+
 #[tauri::command]
 pub async fn gh_check() -> Result<GhStatus, String> {
     let installed = gh_installation_status(gh_command().await.arg("--version").output().await)?;
@@ -1241,7 +1263,7 @@ pub async fn gh_check() -> Result<GhStatus, String> {
         });
     }
 
-    let output = run_gh(&[
+    match run_gh(&[
         "auth",
         "status",
         "--hostname",
@@ -1249,8 +1271,25 @@ pub async fn gh_check() -> Result<GhStatus, String> {
         "--json",
         "hosts",
     ])
-    .await?;
-    parse_gh_status(&output)
+    .await
+    {
+        Ok(output) => parse_gh_status(&output),
+        Err(error) if error.to_ascii_lowercase().contains("unknown flag") => {
+            // Older GitHub CLI releases (< 2.68.0) do not support `--json hosts`.
+            let output = gh_command()
+                .await
+                .args(["auth", "status", "--hostname", "github.com", "--active"])
+                .output()
+                .await
+                .map_err(|e| e.to_string())?;
+            Ok(parse_gh_legacy_status(
+                output.status.success(),
+                &String::from_utf8_lossy(&output.stdout),
+                &String::from_utf8_lossy(&output.stderr),
+            ))
+        }
+        Err(error) => Err(error),
+    }
 }
 
 #[tauri::command]
@@ -1992,6 +2031,26 @@ mod tests {
         assert!(status.accounts.is_empty());
         assert!(status.username.is_empty());
         assert!(parse_gh_status("not json").is_err());
+    }
+
+    #[test]
+    fn gh_legacy_status_parses_active_account_for_older_cli_versions() {
+        let signed_in = parse_gh_legacy_status(
+            true,
+            "",
+            "github.com\n  ✓ Logged in to github.com account researcher (keyring)\n  - Active account: true\n",
+        );
+        assert!(signed_in.installed);
+        assert!(signed_in.authenticated);
+        assert_eq!(signed_in.username, "researcher");
+        assert_eq!(signed_in.accounts.len(), 1);
+        assert!(signed_in.accounts[0].authenticated);
+
+        let signed_out = parse_gh_legacy_status(false, "", "You are not logged into any GitHub hosts.");
+        assert!(signed_out.installed);
+        assert!(!signed_out.authenticated);
+        assert!(signed_out.username.is_empty());
+        assert!(signed_out.accounts.is_empty());
     }
 
     #[test]

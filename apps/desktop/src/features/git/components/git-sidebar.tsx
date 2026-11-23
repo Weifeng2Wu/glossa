@@ -101,6 +101,7 @@ export function GitSidebar({ daemon, generateCommitMessage, onPreviewDiff, onOpe
   const startPublishing = useCallback(async () => {
     setPublishError(null);
     const status = await daemon.ghCheck();
+    if (status.error) return toast(status.error, "error");
     if (!status.installed) return toast(t("git.ghNotInstalled"), "error");
     if (!status.authenticated) {
       if (daemon.isAuthenticatingGh) return toast(t("git.authInProgress"), "info");

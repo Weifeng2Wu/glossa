@@ -36,6 +36,7 @@ export interface GhStatus {
   authenticated: boolean;
   username: string;
   accounts?: { username: string; active: boolean; authenticated: boolean }[];
+  error?: string;
 }
 
 interface GhRepoResult {
@@ -616,7 +617,12 @@ export function useTauriDaemon(options?: TauriDaemonOptions) {
       return status;
     } catch (error) {
       console.error("Failed to check gh status:", error);
-      const fallback: GhStatus = { installed: false, authenticated: false, username: "" };
+      const fallback: GhStatus = {
+        installed: false,
+        authenticated: false,
+        username: "",
+        error: String(error),
+      };
       setGitState((s) => ({ ...s, ghStatus: fallback }));
       return fallback;
     }

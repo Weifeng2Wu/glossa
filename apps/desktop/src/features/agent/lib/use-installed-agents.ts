@@ -25,9 +25,11 @@ export function useInstalledAgents() {
     };
     detect();
     window.addEventListener(AGENT_INSTALLATION_CHANGED, detect);
+    window.addEventListener("focus", detect);
     return () => {
       cancelled = true;
       window.removeEventListener(AGENT_INSTALLATION_CHANGED, detect);
+      window.removeEventListener("focus", detect);
     };
   }, []);
 

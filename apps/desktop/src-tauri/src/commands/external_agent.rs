@@ -73,7 +73,8 @@ struct Agent {
     binary: &'static str,
     adapter: &'static str,
     args: &'static [&'static str],
-    packages: &'static [&'static str],
+    cli_package: Option<&'static str>,
+    adapter_package: Option<&'static str>,
 }
 
 const AGENTS: &[Agent] = &[
@@ -82,31 +83,32 @@ const AGENTS: &[Agent] = &[
         binary: "pi",
         adapter: "pi-acp",
         args: &[],
-        packages: &["@mariozechner/pi-coding-agent", "pi-acp@0.0.34"],
+        cli_package: Some("@mariozechner/pi-coding-agent"),
+        adapter_package: Some("pi-acp@0.0.34"),
     },
     Agent {
         id: "opencode",
         binary: "opencode",
         adapter: "opencode",
         args: &["acp"],
-        packages: &["opencode-ai"],
+        cli_package: Some("opencode-ai"),
+        adapter_package: Some("opencode-ai"),
     },
     Agent {
         id: "claude",
         binary: "claude",
         adapter: "claude-agent-acp",
         args: &[],
-        packages: &[
-            "@anthropic-ai/claude-code",
-            "@agentclientprotocol/claude-agent-acp@0.91.0",
-        ],
+        cli_package: Some("@anthropic-ai/claude-code"),
+        adapter_package: Some("@agentclientprotocol/claude-agent-acp@0.91.0"),
     },
     Agent {
         id: "codex",
         binary: "codex",
         adapter: "codex-acp",
         args: &[],
-        packages: &["@openai/codex", "@agentclientprotocol/codex-acp@2.2.2"],
+        cli_package: Some("@openai/codex"),
+        adapter_package: Some("@agentclientprotocol/codex-acp@2.2.2"),
     },
     Agent {
         id: "antigravity",
@@ -117,42 +119,48 @@ const AGENTS: &[Agent] = &[
         } else {
             &[]
         },
-        packages: &[],
+        cli_package: None,
+        adapter_package: None,
     },
     Agent {
         id: "qoder",
         binary: "qodercli",
         adapter: "qodercli",
         args: &["--acp"],
-        packages: &["@qoder-ai/qodercli@0.2.14"],
+        cli_package: Some("@qoder-ai/qodercli@0.2.14"),
+        adapter_package: Some("@qoder-ai/qodercli@0.2.14"),
     },
     Agent {
         id: "grok",
         binary: "grok",
         adapter: "grok",
         args: &["agent", "stdio"],
-        packages: &["@xai-official/grok@1.0.61"],
+        cli_package: Some("@xai-official/grok@1.0.61"),
+        adapter_package: Some("@xai-official/grok@1.0.61"),
     },
     Agent {
         id: "deepseek",
         binary: "dsh",
         adapter: "dsh",
         args: &["--profile", "acp"],
-        packages: &["@deepseek-ai/dsh@0.2.0-rc.2"],
+        cli_package: Some("@deepseek-ai/dsh@0.2.0-rc.2"),
+        adapter_package: Some("@deepseek-ai/dsh@0.2.0-rc.2"),
     },
     Agent {
         id: "kimi",
         binary: "kimi",
         adapter: "kimi",
         args: &["acp"],
-        packages: &[],
+        cli_package: None,
+        adapter_package: None,
     },
     Agent {
         id: "zcode",
         binary: "zcode",
         adapter: "zcode-acp-server",
         args: &[],
-        packages: &["zcode-acp-server@0.72.0"],
+        cli_package: None,
+        adapter_package: Some("zcode-acp-server@0.72.0"),
     },
 ];
 
@@ -163,12 +171,60 @@ fn agent(id: &str) -> Result<&'static Agent, String> {
         .ok_or_else(|| "Unknown agent.".into())
 }
 
+fn user_home_dir() -> Option<PathBuf> {
+    #[cfg(windows)]
+    let home = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME"));
+    #[cfg(not(windows))]
+    let home = std::env::var_os("HOME");
+    home.filter(|value| !value.is_empty()).map(PathBuf::from)
+}
+
+/// Persistent user-level directory for external agents & ACP adapters so
+/// uninstalling or reinstalling Glossa never wipes installed adapters.
 fn root(app: &AppHandle) -> Result<PathBuf, String> {
+    if let Some(home) = user_home_dir() {
+        return Ok(home.join(".glossa").join("external-agents"));
+    }
     Ok(app
         .path()
         .app_data_dir()
         .map_err(|error| error.to_string())?
         .join("external-agents"))
+}
+
+fn all_agent_roots(app: &AppHandle) -> Result<Vec<PathBuf>, String> {
+    let primary = root(app)?;
+    let mut roots = vec![primary.clone()];
+    if let Ok(app_data) = app.path().app_data_dir() {
+        let current_app_agents = app_data.join("external-agents");
+        if !roots.contains(&current_app_agents) {
+            roots.push(current_app_agents);
+        }
+        if let Some(legacy_app_data) = super::storage::legacy_app_data_dir(&app_data) {
+            let legacy_agents = legacy_app_data.join("external-agents");
+            if !roots.contains(&legacy_agents) {
+                roots.push(legacy_agents);
+            }
+        }
+    }
+    Ok(roots)
+}
+
+fn missing_npm_packages(entry: &Agent, has_binary: bool, has_adapter: bool) -> Vec<&'static str> {
+    let mut packages = Vec::new();
+    if !has_binary {
+        if let Some(pkg) = entry.cli_package {
+            packages.push(pkg);
+        }
+    }
+    if !has_adapter {
+        if let Some(pkg) = entry.adapter_package {
+            if !packages.contains(&pkg) {
+                packages.push(pkg);
+            }
+        }
+    }
+    packages
 }
 
 struct AntigravityDistribution {
@@ -228,7 +284,7 @@ fn supports_installation(entry: &Agent, os: &str, arch: &str) -> bool {
     if entry.id == "antigravity" {
         return antigravity_distribution(os, arch).is_some();
     }
-    !entry.packages.is_empty() || entry.id == "kimi"
+    entry.cli_package.is_some() || entry.adapter_package.is_some() || entry.id == "kimi"
 }
 
 #[cfg(test)]
@@ -249,7 +305,7 @@ mod tests {
     #[test]
     fn antigravity_installation_supports_all_six_targets() {
         let entry = agent("antigravity").unwrap();
-        assert!(entry.packages.is_empty());
+        assert!(entry.cli_package.is_none() && entry.adapter_package.is_none());
         for os in ["windows", "macos", "linux"] {
             for arch in ["x86_64", "aarch64"] {
                 assert!(supports_installation(entry, os, arch));
@@ -280,6 +336,56 @@ mod tests {
             "linux",
             "aarch64"
         ));
+    }
+
+    #[test]
+    fn missing_npm_packages_skips_already_installed_cli_to_prevent_duplicates() {
+        let claude = agent("claude").unwrap();
+        assert_eq!(
+            missing_npm_packages(claude, false, false),
+            vec![
+                "@anthropic-ai/claude-code",
+                "@agentclientprotocol/claude-agent-acp@0.91.0"
+            ]
+        );
+        assert_eq!(
+            missing_npm_packages(claude, true, false),
+            vec!["@agentclientprotocol/claude-agent-acp@0.91.0"]
+        );
+        assert!(missing_npm_packages(claude, true, true).is_empty());
+
+        let opencode = agent("opencode").unwrap();
+        assert_eq!(missing_npm_packages(opencode, false, false), vec!["opencode-ai"]);
+        assert!(missing_npm_packages(opencode, true, true).is_empty());
+
+        let zcode = agent("zcode").unwrap();
+        assert_eq!(
+            missing_npm_packages(zcode, false, false),
+            vec!["zcode-acp-server@0.72.0"]
+        );
+        assert_eq!(
+            missing_npm_packages(zcode, true, false),
+            vec!["zcode-acp-server@0.72.0"]
+        );
+        assert!(missing_npm_packages(zcode, true, true).is_empty());
+    }
+
+    #[test]
+    fn agent_search_directories_checks_primary_and_legacy_roots() {
+        let primary = PathBuf::from("home/.glossa/external-agents");
+        let legacy = PathBuf::from("appdata/com.inkwell.app/external-agents");
+        let env = PathBuf::from("system/bin");
+        let dirs = agent_search_directories(&[primary.clone(), legacy.clone()], "codex", vec![env.clone()]);
+        assert_eq!(
+            dirs[..5],
+            [
+                primary.join("codex/node_modules/.bin"),
+                primary.join("codex/bin"),
+                legacy.join("codex/node_modules/.bin"),
+                legacy.join("codex/bin"),
+                env,
+            ]
+        );
     }
 
     #[test]
@@ -314,15 +420,15 @@ mod tests {
         let windows = antigravity_archive_installer("windows", archive, bin, "agy_acp_server.exe");
         let env: HashMap<_, _> = windows.as_std().get_envs().collect();
         assert_eq!(
-            env.get(std::ffi::OsStr::new("INKWELL_AGY_ARCHIVE")),
+            env.get(std::ffi::OsStr::new("GLOSSA_AGY_ARCHIVE")),
             Some(&Some(archive.as_os_str()))
         );
         assert_eq!(
-            env.get(std::ffi::OsStr::new("INKWELL_AGY_BIN")),
+            env.get(std::ffi::OsStr::new("GLOSSA_AGY_BIN")),
             Some(&Some(bin.as_os_str()))
         );
         assert_eq!(
-            env.get(std::ffi::OsStr::new("INKWELL_AGY_HARNESS")),
+            env.get(std::ffi::OsStr::new("GLOSSA_AGY_HARNESS")),
             Some(&Some(std::ffi::OsStr::new("localharness_external.exe")))
         );
         assert!(!windows
@@ -334,7 +440,7 @@ mod tests {
     #[tokio::test]
     async fn adapter_without_companion_is_not_ready() {
         let directory =
-            std::env::temp_dir().join(format!("inkwell-agy-test-{}", uuid::Uuid::new_v4()));
+            std::env::temp_dir().join(format!("glossa-agy-test-{}", uuid::Uuid::new_v4()));
         tokio::fs::create_dir_all(&directory).await.unwrap();
         let adapter = directory.join("agy_acp_server.exe");
         tokio::fs::write(&adapter, b"test").await.unwrap();
@@ -384,8 +490,8 @@ fn antigravity_archive_installer(os: &str, archive: &Path, bin: &Path, binary: &
     let harness = antigravity_harness_binary(os);
     if os == "windows" {
         let mut installer = command("powershell.exe");
-        installer.args(["-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference = 'Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead($env:INKWELL_AGY_ARCHIVE); try { $names = @($env:INKWELL_AGY_BINARY, $env:INKWELL_AGY_HARNESS); foreach ($name in $names) { if ($null -eq $zip.GetEntry($name)) { throw ('Required ACP bundle file is missing: ' + $name) } }; foreach ($name in $names) { [System.IO.Compression.ZipFileExtensions]::ExtractToFile($zip.GetEntry($name), (Join-Path $env:INKWELL_AGY_BIN $name), $true) } } finally { $zip.Dispose() }"])
-            .env("INKWELL_AGY_ARCHIVE", archive).env("INKWELL_AGY_BIN", bin).env("INKWELL_AGY_BINARY", binary).env("INKWELL_AGY_HARNESS", harness);
+        installer.args(["-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference = 'Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead($env:GLOSSA_AGY_ARCHIVE); try { $names = @($env:GLOSSA_AGY_BINARY, $env:GLOSSA_AGY_HARNESS); foreach ($name in $names) { if ($null -eq $zip.GetEntry($name)) { throw ('Required ACP bundle file is missing: ' + $name) } }; foreach ($name in $names) { [System.IO.Compression.ZipFileExtensions]::ExtractToFile($zip.GetEntry($name), (Join-Path $env:GLOSSA_AGY_BIN $name), $true) } } finally { $zip.Dispose() }"])
+            .env("GLOSSA_AGY_ARCHIVE", archive).env("GLOSSA_AGY_BIN", bin).env("GLOSSA_AGY_BINARY", binary).env("GLOSSA_AGY_HARNESS", harness);
         installer
     } else {
         let mut installer = command("unzip");
@@ -561,12 +667,17 @@ async fn executable(app: &AppHandle, id: &str, name: &str) -> Result<Option<Path
     if name.is_empty() {
         return Ok(None);
     }
-    let directories = agent_search_directories(&root(app)?, id, cli_search_paths());
+    let roots = all_agent_roots(app)?;
+    let directories = agent_search_directories(&roots, id, cli_search_paths());
     find_executable(name, &directories).await
 }
 
-fn agent_search_directories(root: &Path, id: &str, environment: Vec<PathBuf>) -> Vec<PathBuf> {
-    let mut directories = vec![root.join(id).join("node_modules/.bin"), root.join(id).join("bin")];
+fn agent_search_directories(roots: &[PathBuf], id: &str, environment: Vec<PathBuf>) -> Vec<PathBuf> {
+    let mut directories = Vec::new();
+    for root in roots {
+        directories.push(root.join(id).join("node_modules/.bin"));
+        directories.push(root.join(id).join("bin"));
+    }
     directories.extend(environment);
     if id == "antigravity" {
         if let Some(local) = std::env::var_os("LOCALAPPDATA") {
@@ -682,6 +793,11 @@ pub async fn external_agent_install(
     if entry.id == "antigravity" {
         return install_antigravity(&app, &directory).await;
     }
+    let has_binary = executable(&app, entry.id, entry.binary).await?.is_some();
+    let has_adapter = executable(&app, entry.id, entry.adapter).await?.is_some();
+    if has_binary && has_adapter {
+        return Ok(());
+    }
     let installer = if entry.id == "kimi" {
         let mut installer = command("uv");
         installer
@@ -690,7 +806,8 @@ pub async fn external_agent_install(
             .env("UV_TOOL_BIN_DIR", directory.join("bin"));
         installer
     } else {
-        if entry.packages.is_empty() {
+        let packages = missing_npm_packages(entry, has_binary, has_adapter);
+        if packages.is_empty() {
             return Err(
                 "No verified automatic installer. Configure an existing ACP executable.".into(),
             );
@@ -699,7 +816,7 @@ pub async fn external_agent_install(
         installer
             .args(["install", "--no-audit", "--no-fund", "--prefix"])
             .arg(&directory)
-            .args(entry.packages);
+            .args(packages);
         installer
     };
     run_installer(&app, &agent_id, installer, &directory).await
@@ -716,18 +833,24 @@ pub async fn external_agent_uninstall(
     if !state.runtimes.lock().await.is_empty() {
         return Err("Disconnect the Agent before uninstalling it.".into());
     }
-    let directory = root(&app)?.join(entry.id);
+    let roots = all_agent_roots(&app)?;
     if entry.id == "antigravity" {
-        let bin = directory.join("bin");
-        for name in [
-            antigravity_distribution(std::env::consts::OS, std::env::consts::ARCH)
-                .ok_or("Antigravity ACP is unsupported on this platform.")?
-                .binary,
-            antigravity_harness_binary(std::env::consts::OS),
-        ] {
-            let path = bin.join(name);
-            if tokio::fs::try_exists(&path).await.map_err(|error| error.to_string())? {
-                tokio::fs::remove_file(path).await.map_err(|error| error.to_string())?;
+        let binary = antigravity_distribution(std::env::consts::OS, std::env::consts::ARCH)
+            .ok_or("Antigravity ACP is unsupported on this platform.")?
+            .binary;
+        let harness = antigravity_harness_binary(std::env::consts::OS);
+        for agent_root in roots {
+            let bin = agent_root.join(entry.id).join("bin");
+            for name in [binary, harness] {
+                let path = bin.join(name);
+                if tokio::fs::try_exists(&path)
+                    .await
+                    .map_err(|error| error.to_string())?
+                {
+                    tokio::fs::remove_file(path)
+                        .await
+                        .map_err(|error| error.to_string())?;
+                }
             }
         }
         return Ok(());
@@ -740,19 +863,28 @@ pub async fn external_agent_uninstall(
         _ => None,
     }
     .ok_or("This Agent bundles ACP into its CLI; its ACP adapter cannot be removed separately.")?;
-    let output = command(if cfg!(windows) { "npm.cmd" } else { "npm" })
-        .args(["uninstall", "--no-audit", "--no-fund", "--prefix"])
-        .arg(&directory)
-        .arg(package)
-        .current_dir(&directory)
-        .output()
-        .await
-        .map_err(|error| format!("Could not uninstall ACP adapter: {error}"))?;
-    if !output.status.success() {
-        return Err(format!(
-            "Could not uninstall ACP adapter: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        ));
+    for agent_root in roots {
+        let directory = agent_root.join(entry.id);
+        if !tokio::fs::try_exists(&directory)
+            .await
+            .map_err(|error| error.to_string())?
+        {
+            continue;
+        }
+        let output = command(if cfg!(windows) { "npm.cmd" } else { "npm" })
+            .args(["uninstall", "--no-audit", "--no-fund", "--prefix"])
+            .arg(&directory)
+            .arg(package)
+            .current_dir(&directory)
+            .output()
+            .await
+            .map_err(|error| format!("Could not uninstall ACP adapter: {error}"))?;
+        if !output.status.success() {
+            return Err(format!(
+                "Could not uninstall ACP adapter: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
     }
     Ok(())
 }
@@ -875,7 +1007,8 @@ pub async fn external_agent_start(
             return Err("ACP runtime already connected. Disconnect it before starting a replacement.".into());
         }
     }
-    let paths = agent_search_directories(&root(&app)?, entry.id, cli_search_paths());
+    let roots = all_agent_roots(&app)?;
+    let paths = agent_search_directories(&roots, entry.id, cli_search_paths());
     let mut launcher = command(&program);
     if automatic && entry.id == "antigravity" {
         if let Some(harness) = antigravity_harness_path(Path::new(&program), std::env::consts::OS) {
@@ -1097,11 +1230,13 @@ pub async fn agent_shared_skills(
     if request.len() > max_request_bytes {
         return Err("Skill request too large.".into());
     }
+    let database = super::storage::database_path(&app).await?;
     let node = super::agent_runtime::node_binary()?;
     let mut child = command(node.to_str().ok_or("Invalid Node.js executable path.")?)
         .arg(directory.join("shared-skills.mjs"))
         .arg(directory.join("skills"))
-        .env("INKWELL_DATABASE_PATH", directory.join("inkwell.sqlite"))
+        .env("GLOSSA_DATABASE_PATH", &database)
+        .env("INKWELL_DATABASE_PATH", &database)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

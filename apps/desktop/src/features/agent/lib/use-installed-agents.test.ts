@@ -53,14 +53,17 @@ describe("installed Agent detection", () => {
     expect(hooks.setStatuses).not.toHaveBeenCalled();
   });
 
-  it("refreshes detected Agents after installation and removes the listener on unmount", async () => {
+  it("refreshes detected Agents after installation or window focus and removes listeners on unmount", async () => {
     useInstalledAgents();
     await vi.waitFor(() => expect(hooks.setStatuses).toHaveBeenCalledWith([]));
     window.dispatchEvent(new Event(AGENT_INSTALLATION_CHANGED));
     expect(invoke).toHaveBeenCalledTimes(2);
+    window.dispatchEvent(new Event("focus"));
+    expect(invoke).toHaveBeenCalledTimes(3);
     hooks.cleanup?.();
     window.dispatchEvent(new Event(AGENT_INSTALLATION_CHANGED));
-    expect(invoke).toHaveBeenCalledTimes(2);
+    window.dispatchEvent(new Event("focus"));
+    expect(invoke).toHaveBeenCalledTimes(3);
   });
 
   it("does not replace a refreshed result with a slower earlier detection", async () => {

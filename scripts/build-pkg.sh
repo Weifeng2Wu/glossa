@@ -8,7 +8,7 @@ set -euo pipefail
 
 # Configuration
 APP_NAME="Glossa"
-BUNDLE_ID="com.inkwell.app"
+BUNDLE_ID="com.glossa.app"
 
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -108,7 +108,7 @@ cat > "$DIST_XML" << EOF
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
     <title>$APP_NAME</title>
-    <organization>com.inkwell</organization>
+    <organization>com.glossa</organization>
     <domains enable_localSystem="true"/>
     <options customize="never" require-scripts="true" rootVolumeOnly="true"/>
     <volume-check>

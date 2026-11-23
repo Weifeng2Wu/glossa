@@ -3,7 +3,11 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 export function databasePath(directory) {
-  return process.env.INKWELL_DATABASE_PATH || path.join(directory, "inkwell.sqlite");
+  if (process.env.GLOSSA_DATABASE_PATH) return process.env.GLOSSA_DATABASE_PATH;
+  if (process.env.INKWELL_DATABASE_PATH) return process.env.INKWELL_DATABASE_PATH;
+  const current = path.join(directory, "glossa.sqlite");
+  const legacy = path.join(directory, "inkwell.sqlite");
+  return !existsSync(current) && existsSync(legacy) ? legacy : current;
 }
 
 const PREFIXES = [

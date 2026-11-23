@@ -241,6 +241,7 @@ pub async fn academic_agent_start(
             .await
             .map_err(|error| error.to_string())?;
     }
+    let database = super::storage::database_path(&app).await?;
     let node = super::agent_runtime::node_binary()?;
     let review_workspace = super::agent_review::workspace(&app, &project).await?;
     let mut child = command(node.to_str().ok_or("Invalid Node.js executable path.")?)
@@ -249,7 +250,8 @@ pub async fn academic_agent_start(
         .arg(&directory)
         .arg(sdk)
         .arg(&project)
-        .env("INKWELL_DATABASE_PATH", directory.join("inkwell.sqlite"))
+        .env("GLOSSA_DATABASE_PATH", &database)
+        .env("INKWELL_DATABASE_PATH", &database)
         .current_dir(&review_workspace)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

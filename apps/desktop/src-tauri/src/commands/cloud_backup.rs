@@ -52,11 +52,14 @@ pub async fn cloud_backup_request(
     }
     let bytes = serde_json::to_vec(&request).map_err(|_| "CLOUD_CONFIG")?;
     if bytes.len() > 64 * 1024 { return Err("CLOUD_SIZE_LIMIT".into()); }
+    let database = super::storage::database_path(&app)
+        .await
+        .map_err(|_| "CLOUD_LOCAL")?;
     let mut command = Command::new(super::agent_runtime::node_binary()?);
     #[cfg(target_os = "windows")]
     command.creation_flags(0x08000000);
     let mut child = command.arg(runtime.join("cloud-backup.mjs"))
-        .arg(directory.join("academic-agent").join("inkwell.sqlite"))
+        .arg(database)
         .env("NODE_USE_ENV_PROXY", "1")
         .stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped())
         .kill_on_drop(true).spawn().map_err(|_| "CLOUD_RUNTIME")?;

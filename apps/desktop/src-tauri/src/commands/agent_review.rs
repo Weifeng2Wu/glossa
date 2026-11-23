@@ -548,7 +548,7 @@ pub async fn agent_review_resolve(
                         .map_err(|error| error.to_string())?;
                 }
                 let temporary =
-                    target.with_file_name(format!(".inkwell-review-{}.tmp", uuid::Uuid::new_v4()));
+                    target.with_file_name(format!(".glossa-review-{}.tmp", uuid::Uuid::new_v4()));
                 tokio::fs::write(&temporary, content)
                     .await
                     .map_err(|error| error.to_string())?;

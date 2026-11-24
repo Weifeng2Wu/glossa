@@ -178,6 +178,259 @@ pub fn save_generated_image(
     save_generated_image_in_project(&project, &bytes, &mime_type)
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedImage {
+    pub relative_path: String,
+}
+
+const PROJECT_IMAGES_DIRECTORY: &str = "images";
+const PROJECT_IMAGE_LIMIT: u64 = 32 * 1024 * 1024;
+
+fn project_relative_path(path: &Path) -> String {
+    path.components()
+        .map(|part| part.as_os_str().to_string_lossy().into_owned())
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+fn safe_image_stem(source: &Path) -> String {
+    let stem: String = source
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .unwrap_or_default()
+        .chars()
+        .map(|character| {
+            if character.is_alphanumeric() || matches!(character, '-' | '_' | '.') {
+                character
+            } else {
+                '-'
+            }
+        })
+        .take(80)
+        .collect();
+    let stem = stem.trim_matches(|character| character == '-' || character == '.');
+    if stem.is_empty() {
+        "image".into()
+    } else {
+        stem.into()
+    }
+}
+
+fn image_extension(path: &Path) -> Option<String> {
+    let ext = path.extension()?.to_str()?.to_ascii_lowercase();
+    if matches!(
+        ext.as_str(),
+        "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" | "bmp" | "ico" | "avif"
+    ) {
+        Some(ext)
+    } else {
+        None
+    }
+}
+
+fn validate_image_header(extension: &str, bytes: &[u8]) -> bool {
+    match extension {
+        "png" => bytes.starts_with(b"\x89PNG\r\n\x1a\n"),
+        "jpg" | "jpeg" => bytes.starts_with(&[0xff, 0xd8, 0xff]),
+        "gif" => bytes.starts_with(b"GIF87a") || bytes.starts_with(b"GIF89a"),
+        "webp" => bytes.len() >= 12 && &bytes[..4] == b"RIFF" && &bytes[8..12] == b"WEBP",
+        "bmp" => bytes.starts_with(b"BM"),
+        "ico" => bytes.starts_with(&[0, 0, 1, 0]) || bytes.starts_with(&[0, 0, 2, 0]),
+        "avif" => bytes.len() >= 12 && &bytes[4..8] == b"ftyp",
+        "svg" => {
+            if bytes.contains(&0) {
+                return false;
+            }
+            let text = String::from_utf8_lossy(bytes);
+            let trimmed = text.trim_start_matches('\u{feff}').trim_start();
+            trimmed.starts_with('<') && trimmed.to_ascii_lowercase().contains("<svg")
+        }
+        _ => false,
+    }
+}
+
+fn ensure_project_images_dir(root: &Path) -> Result<PathBuf, String> {
+    let directory = root.join(PROJECT_IMAGES_DIRECTORY);
+    match std::fs::symlink_metadata(&directory) {
+        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+            return Err("The images path is not a safe directory.".into());
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            std::fs::create_dir(&directory).map_err(|error| error.to_string())?;
+        }
+        Err(error) => return Err(error.to_string()),
+    }
+    let canonical = std::fs::canonicalize(&directory).map_err(|error| error.to_string())?;
+    if !canonical.starts_with(root) {
+        return Err("Image directory escapes the project.".into());
+    }
+    Ok(canonical)
+}
+
+fn import_image_in_project(
+    project: &str,
+    expected_project: &str,
+    source: &str,
+) -> Result<ImportedImage, String> {
+    use std::io::{Read, Write};
+    let root = std::fs::canonicalize(project).map_err(|error| error.to_string())?;
+    if root != std::fs::canonicalize(expected_project).map_err(|error| error.to_string())? {
+        return Err("The active project changed before the image could be inserted.".into());
+    }
+    let source =
+        std::fs::canonicalize(source).map_err(|_| "Source image file is unavailable.".to_string())?;
+    let metadata = std::fs::metadata(&source).map_err(|error| error.to_string())?;
+    let Some(extension) = image_extension(&source) else {
+        return Err("Unsupported image file type.".into());
+    };
+    if !metadata.is_file() || metadata.len() == 0 || metadata.len() > PROJECT_IMAGE_LIMIT {
+        return Err("Image must be a file no larger than 32 MiB.".into());
+    }
+    let mut input = std::fs::File::open(&source).map_err(|error| error.to_string())?;
+    let mut header = Vec::new();
+    (&mut input)
+        .take(4096)
+        .read_to_end(&mut header)
+        .map_err(|error| error.to_string())?;
+    if !validate_image_header(&extension, &header) {
+        return Err("Invalid or unsupported image content.".into());
+    }
+    if let Ok(relative) = source.strip_prefix(&root) {
+        return Ok(ImportedImage {
+            relative_path: project_relative_path(relative),
+        });
+    }
+
+    let directory = ensure_project_images_dir(&root)?;
+    let stem = safe_image_stem(&source);
+    let remaining_limit = PROJECT_IMAGE_LIMIT.saturating_sub(header.len() as u64);
+    for index in 0..1000 {
+        let filename = if index == 0 {
+            format!("{stem}.{extension}")
+        } else {
+            format!("{stem}-{index}.{extension}")
+        };
+        let target = directory.join(&filename);
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&target)
+        {
+            Ok(mut output) => {
+                let copied = output
+                    .write_all(&header)
+                    .and_then(|_| {
+                        std::io::copy(&mut (&mut input).take(remaining_limit), &mut output)
+                    })
+                    .and_then(|_| output.sync_all());
+                if let Err(error) = copied {
+                    let _ = std::fs::remove_file(&target);
+                    return Err(error.to_string());
+                }
+                return Ok(ImportedImage {
+                    relative_path: format!("{PROJECT_IMAGES_DIRECTORY}/{filename}"),
+                });
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(error.to_string()),
+        }
+    }
+    Err("Could not choose a unique image filename.".into())
+}
+
+fn import_image_bytes_in_project(
+    project: &str,
+    expected_project: &str,
+    name: &str,
+    bytes: &[u8],
+) -> Result<ImportedImage, String> {
+    use std::io::Write;
+    let root = std::fs::canonicalize(project).map_err(|error| error.to_string())?;
+    if root != std::fs::canonicalize(expected_project).map_err(|error| error.to_string())? {
+        return Err("The active project changed before the image could be inserted.".into());
+    }
+    if bytes.is_empty() || bytes.len() as u64 > PROJECT_IMAGE_LIMIT {
+        return Err("Image must be between 1 byte and 32 MiB.".into());
+    }
+    let name_path = Path::new(name);
+    let Some(extension) = image_extension(name_path) else {
+        return Err("Unsupported image file type.".into());
+    };
+    let header_len = bytes.len().min(4096);
+    if !validate_image_header(&extension, &bytes[..header_len]) {
+        return Err("Invalid or unsupported image content.".into());
+    }
+    let directory = ensure_project_images_dir(&root)?;
+    let stem = safe_image_stem(name_path);
+    for index in 0..1000 {
+        let filename = if index == 0 {
+            format!("{stem}.{extension}")
+        } else {
+            format!("{stem}-{index}.{extension}")
+        };
+        let target = directory.join(&filename);
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&target)
+        {
+            Ok(mut output) => {
+                if let Err(error) = output.write_all(bytes).and_then(|_| output.sync_all()) {
+                    let _ = std::fs::remove_file(&target);
+                    return Err(error.to_string());
+                }
+                return Ok(ImportedImage {
+                    relative_path: format!("{PROJECT_IMAGES_DIRECTORY}/{filename}"),
+                });
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(error.to_string()),
+        }
+    }
+    Err("Could not choose a unique image filename.".into())
+}
+
+#[tauri::command]
+pub async fn import_project_image(
+    state: tauri::State<'_, Mutex<ProjectState>>,
+    source_path: String,
+    expected_project: String,
+) -> Result<ImportedImage, String> {
+    let project = state
+        .lock()
+        .map_err(|error| error.to_string())?
+        .project_path
+        .clone()
+        .ok_or_else(|| "No project open".to_string())?;
+    tokio::task::spawn_blocking(move || {
+        import_image_in_project(&project, &expected_project, &source_path)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+pub async fn import_project_image_bytes(
+    state: tauri::State<'_, Mutex<ProjectState>>,
+    name: String,
+    bytes: Vec<u8>,
+    expected_project: String,
+) -> Result<ImportedImage, String> {
+    let project = state
+        .lock()
+        .map_err(|error| error.to_string())?
+        .project_path
+        .clone()
+        .ok_or_else(|| "No project open".to_string())?;
+    tokio::task::spawn_blocking(move || {
+        import_image_bytes_in_project(&project, &expected_project, &name, &bytes)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 /// The native save dialog chooses the destination; callers cannot supply a path.
 #[tauri::command]
 pub async fn save_poster_export(
@@ -892,5 +1145,92 @@ mod tests {
     async fn test_get_file_tree_returns_error_for_nonexistent_dir() {
         let result = get_file_tree("/nonexistent/directory".to_string()).await;
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_import_image_copies_external_png_and_avoids_collisions() {
+        let temp_dir = TempDir::new().unwrap();
+        let project = temp_dir.path().join("project");
+        let external = temp_dir.path().join("external");
+        fs::create_dir_all(&project).unwrap();
+        fs::create_dir_all(&external).unwrap();
+
+        let png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR";
+        let source = external.join("figure 1.png");
+        fs::write(&source, png_bytes).unwrap();
+
+        let first = import_image_in_project(
+            &project.to_string_lossy(),
+            &project.to_string_lossy(),
+            &source.to_string_lossy(),
+        )
+        .unwrap();
+        assert_eq!(first.relative_path, "images/figure-1.png");
+        assert_eq!(fs::read(project.join("images/figure-1.png")).unwrap(), png_bytes);
+
+        let second = import_image_in_project(
+            &project.to_string_lossy(),
+            &project.to_string_lossy(),
+            &source.to_string_lossy(),
+        )
+        .unwrap();
+        assert_eq!(second.relative_path, "images/figure-1-1.png");
+    }
+
+    #[test]
+    fn test_import_image_keeps_in_project_image_in_place() {
+        let temp_dir = TempDir::new().unwrap();
+        let project = temp_dir.path().join("project");
+        fs::create_dir_all(project.join("figs")).unwrap();
+
+        let png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR";
+        let existing = project.join("figs/plot.png");
+        fs::write(&existing, png_bytes).unwrap();
+
+        let result = import_image_in_project(
+            &project.to_string_lossy(),
+            &project.to_string_lossy(),
+            &existing.to_string_lossy(),
+        )
+        .unwrap();
+        assert_eq!(result.relative_path, "figs/plot.png");
+        assert!(!project.join("images").exists());
+    }
+
+    #[test]
+    fn test_import_image_rejects_invalid_content_and_project_mismatch() {
+        let temp_dir = TempDir::new().unwrap();
+        let project = temp_dir.path().join("project");
+        let other = temp_dir.path().join("other");
+        fs::create_dir_all(&project).unwrap();
+        fs::create_dir_all(&other).unwrap();
+
+        let fake_png = temp_dir.path().join("fake.png");
+        fs::write(&fake_png, b"not a real png").unwrap();
+        assert!(import_image_in_project(
+            &project.to_string_lossy(),
+            &project.to_string_lossy(),
+            &fake_png.to_string_lossy(),
+        )
+        .is_err());
+
+        let valid_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR";
+        let real_png = temp_dir.path().join("real.png");
+        fs::write(&real_png, valid_png).unwrap();
+        assert!(import_image_in_project(
+            &project.to_string_lossy(),
+            &other.to_string_lossy(),
+            &real_png.to_string_lossy(),
+        )
+        .is_err());
+
+        let imported = import_image_bytes_in_project(
+            &project.to_string_lossy(),
+            &project.to_string_lossy(),
+            "pasted.png",
+            valid_png,
+        )
+        .unwrap();
+        assert_eq!(imported.relative_path, "images/pasted.png");
     }
 }

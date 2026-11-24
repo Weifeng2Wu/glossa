@@ -2,6 +2,67 @@ export function isMarkdownFile(path: string): boolean {
   return /\.(md|markdown|mdown)$/i.test(path);
 }
 
+export function isMarkdownImagePath(path: string): boolean {
+  return /\.(?:png|jpe?g|gif|webp|svg|bmp|ico|avif)$/i.test(path);
+}
+
+function normalizeProjectRelative(filePath: string, projectPath?: string): string {
+  let normalized = filePath.replace(/\\/g, "/");
+  const root = projectPath?.replace(/\\/g, "/").replace(/\/$/, "");
+  if (root) {
+    const windows = /^[a-z]:/i.test(root) || root.startsWith("//");
+    const compare = (value: string) => (windows ? value.toLowerCase() : value);
+    if (compare(normalized).startsWith(`${compare(root)}/`)) {
+      normalized = normalized.slice(root.length + 1);
+    }
+  }
+  return normalized.replace(/^\/+/, "");
+}
+
+function encodeMarkdownPathSegment(segment: string): string {
+  return segment.replace(/[\s()#?%<>]/g, (character) => {
+    if (character === "(") return "%28";
+    if (character === ")") return "%29";
+    return encodeURIComponent(character);
+  });
+}
+
+export function markdownRelativePath(
+  fromFilePath: string,
+  targetProjectPath: string,
+  projectPath?: string,
+): string {
+  const fromSegments = normalizeProjectRelative(fromFilePath, projectPath)
+    .split("/")
+    .filter(Boolean)
+    .slice(0, -1);
+  const toSegments = normalizeProjectRelative(targetProjectPath, projectPath)
+    .split("/")
+    .filter(Boolean);
+  let common = 0;
+  while (
+    common < fromSegments.length &&
+    common < toSegments.length &&
+    fromSegments[common] === toSegments[common]
+  ) {
+    common += 1;
+  }
+  const upward = Array.from({ length: fromSegments.length - common }, () => "..");
+  const remaining = toSegments.slice(common).map(encodeMarkdownPathSegment);
+  return [...upward, ...remaining].join("/");
+}
+
+export function markdownImageSnippet(
+  fromFilePath: string,
+  targetProjectPath: string,
+  projectPath?: string,
+): string {
+  const filename = targetProjectPath.replace(/\\/g, "/").split("/").pop() ?? "image";
+  const alt = filename.replace(/\.[^.]+$/, "").replace(/[[\]]/g, "") || "image";
+  const href = markdownRelativePath(fromFilePath, targetProjectPath, projectPath);
+  return `![${alt}](${href})`;
+}
+
 function hasControlCharacters(value: string) {
   return Array.from(value).some((character) => character.charCodeAt(0) < 32);
 }

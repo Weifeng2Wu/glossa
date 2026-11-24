@@ -265,6 +265,8 @@ export const zh: TranslationDictionary = {
     bold: "加粗",
     italic: "斜体",
     link: "插入链接",
+    dropImages: "松开即可插入图片到 Markdown",
+    imageInsertFailed: "无法插入图片：{error}",
     graphTitle: "知识图谱",
     graphSummary: "{nodes} 篇文档 · {links} 条链接",
     graphLoading: "正在读取文档链接…",

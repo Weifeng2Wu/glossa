@@ -1,6 +1,16 @@
 export type FileType = "text" | "image" | "pdf";
 
-const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"]);
+const IMAGE_EXTENSIONS = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "webp",
+  "svg",
+  "bmp",
+  "ico",
+  "avif",
+]);
 
 const LANGUAGES: Record<string, string> = {
   tex: "latex",

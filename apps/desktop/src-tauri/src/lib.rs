@@ -101,6 +101,8 @@ pub fn run() {
             commands::fs::read_chat_pdf,
             commands::fs::read_poster_image,
             commands::fs::save_generated_image,
+            commands::fs::import_project_image,
+            commands::fs::import_project_image_bytes,
             commands::fs::save_poster_export,
             commands::fs::write_file,
             commands::fs::get_file_tree,

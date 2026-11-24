@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { isMarkdownFile, MARKDOWN_SNIPPETS, resolveMarkdownImage } from "./markdown";
+import {
+  isMarkdownFile,
+  isMarkdownImagePath,
+  MARKDOWN_SNIPPETS,
+  markdownImageSnippet,
+  markdownRelativePath,
+  resolveMarkdownImage,
+} from "./markdown";
 
 describe("Markdown drafts", () => {
   it.each(["draft.md", "notes.MD", "paper.markdown", "notes.mdown"])("recognizes %s", (file) => {
@@ -60,5 +67,35 @@ describe("Markdown drafts", () => {
       expect(snippet.body).toContain("$0");
       expect(snippet.body).toMatch(/\$\{1:/);
     }
+  });
+  it("recognizes supported Markdown image paths", () => {
+    for (const image of ["fig.png", "photo.JPG", "chart.webp", "diagram.svg", "shot.avif"]) {
+      expect(isMarkdownImagePath(image)).toBe(true);
+    }
+    for (const nonImage of ["paper.pdf", "notes.md", "main.tex", "image.png.bak"]) {
+      expect(isMarkdownImagePath(nonImage)).toBe(false);
+    }
+  });
+  it("computes relative Markdown image paths and snippets that round-trip cleanly", () => {
+    expect(markdownRelativePath("draft.md", "images/figure.png", "/project")).toBe(
+      "images/figure.png",
+    );
+    expect(markdownRelativePath("drafts/paper.md", "images/figure 1 (final).png", "/project")).toBe(
+      "../images/figure%201%20%28final%29.png",
+    );
+    expect(
+      markdownRelativePath("C:\\Project\\drafts\\paper.md", "images/图表 1.png", "C:\\Project"),
+    ).toBe("../images/图表%201.png");
+    expect(markdownImageSnippet("drafts/paper.md", "images/result [1].png", "/project")).toBe(
+      "![result 1](../images/result%20[1].png)",
+    );
+    const relative = markdownRelativePath(
+      "drafts/section/intro.md",
+      "images/figure 1 (v2).png",
+      "/project",
+    );
+    expect(resolveMarkdownImage(relative, "drafts/section/intro.md", "/project")).toBe(
+      "/project/images/figure 1 (v2).png",
+    );
   });
 });

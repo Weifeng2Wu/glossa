@@ -4,12 +4,22 @@ import { CodeIcon, ColumnsIcon, EyeIcon, LinkSimpleIcon, NoteIcon } from "@phosp
 import { convertFileSrc, isTauri } from "@tauri-apps/api/core";
 import { motion, useReducedMotion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { type ComponentProps, useCallback, useDeferredValue, useId, useState } from "react";
+import {
+  type ComponentProps,
+  useCallback,
+  useDeferredValue,
+  useId,
+  useRef,
+  useState,
+} from "react";
+import { useToast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useI18n } from "@/features/i18n";
 import type { MarkdownLinkKind } from "@/lib/markdown-links";
 import { resolveMarkdownImage } from "../lib/markdown";
+import { useMarkdownImageDrop } from "../lib/use-markdown-image-drop";
 import { MonacoEditor } from "./lazy";
+import type { MonacoEditorActions } from "./monaco-editor";
 
 const MarkdownContent = dynamic(() =>
   import("@/components/markdown/markdown-content").then((module) => module.MarkdownContent),
@@ -32,10 +42,41 @@ export function DraftEditor({
   onWikiLinkClick?: (target: string, kind?: MarkdownLinkKind) => void;
 }) {
   const { t } = useI18n();
+  const { toast } = useToast();
   const [mode, setMode] = useState<ViewMode>("split");
   const indicatorId = `draft-view-${useId()}`;
   const reducedMotion = useReducedMotion();
+  const containerRef = useRef<HTMLElement>(null);
+  const editorActionsRef = useRef<MonacoEditorActions | null>(null);
   const content = useDeferredValue(props.content ?? "");
+  const contentRef = useRef(props.content ?? "");
+  contentRef.current = props.content ?? "";
+  const onContentChangeRef = useRef(props.onContentChange);
+  onContentChangeRef.current = props.onContentChange;
+
+  const insertDroppedImage = useCallback((snippet: string, point?: { x: number; y: number }) => {
+    if (editorActionsRef.current?.insert(snippet, point)) return;
+    const current = contentRef.current;
+    const separator = current.length === 0 || current.endsWith("\n") ? "" : "\n";
+    onContentChangeRef.current?.(`${current}${separator}${snippet}`);
+  }, []);
+
+  const handleImageDropError = useCallback(
+    (error: unknown) => {
+      toast(t("markdown.imageInsertFailed", { error: String(error) }), "error");
+    },
+    [t, toast],
+  );
+
+  const imageDrop = useMarkdownImageDrop({
+    containerRef,
+    filePath,
+    projectPath,
+    enabled: !props.readOnly && Boolean(projectPath),
+    onInsert: insertDroppedImage,
+    onError: handleImageDropError,
+  });
+
   const resolveImage = useCallback(
     (source: string) => {
       const path = resolveMarkdownImage(source, filePath, projectPath);
@@ -51,7 +92,13 @@ export function DraftEditor({
   ] as const;
   return (
     <section
-      className="flex h-full min-h-0 flex-col bg-background"
+      ref={containerRef}
+      data-markdown-image-drop={!props.readOnly && Boolean(projectPath) ? "true" : undefined}
+      onDragEnterCapture={imageDrop.onDragEnterCapture}
+      onDragOverCapture={imageDrop.onDragOverCapture}
+      onDragLeaveCapture={imageDrop.onDragLeaveCapture}
+      onDropCapture={imageDrop.onDropCapture}
+      className="relative flex h-full min-h-0 flex-col bg-background"
       aria-label={t("markdown.draft")}
     >
       <div className="flex min-h-9 shrink-0 items-center justify-between gap-2 border-b border-border px-3">
@@ -94,6 +141,7 @@ export function DraftEditor({
         <div className={`min-h-0 min-w-0 ${mode === "preview" ? "hidden" : ""}`}>
           <MonacoEditor
             {...props}
+            editorActionsRef={editorActionsRef}
             goToLine={mode === "preview" ? undefined : props.goToLine}
             language="markdown"
             className="h-full"
@@ -151,6 +199,11 @@ export function DraftEditor({
             </button>
           ))}
         </nav>
+      )}
+      {imageDrop.dragging && (
+        <div className="motion-fade pointer-events-none absolute inset-2 z-30 flex items-center justify-center rounded-lg border border-dashed border-accent bg-background/80 text-sm text-foreground">
+          {t("markdown.dropImages")}
+        </div>
       )}
     </section>
   );

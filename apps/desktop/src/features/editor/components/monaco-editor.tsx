@@ -4,7 +4,15 @@ import "@/features/editor/monaco/config";
 
 import Editor, { type Monaco, type OnChange, type OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  memo,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { registerLaTeXLanguage } from "@/features/editor/monaco/latex";
 import { defineEditorThemes } from "@/features/editor/monaco/themes";
 import { useI18n } from "@/features/i18n";
@@ -23,6 +31,10 @@ import { registerMarkdownLanguage } from "../monaco/markdown";
 import { monacoShortcut } from "../monaco/shortcut-keybinding";
 import { EditorSkeleton } from "./editor-skeleton";
 
+export type MonacoEditorActions = {
+  insert: (text: string, point?: { x: number; y: number }) => boolean;
+};
+
 type Props = {
   content?: string;
   readOnly?: boolean;
@@ -35,6 +47,7 @@ type Props = {
   goToSelection?: EditorSelection & { requestId: string };
   bibliography?: readonly BibliographyEntry[];
   onAddSelection?: (selection: EditorSelection) => void;
+  editorActionsRef?: RefObject<MonacoEditorActions | null>;
 };
 
 type VimModeController = {
@@ -80,6 +93,7 @@ export const MonacoEditor = memo(function MonacoEditor({
   goToSelection,
   bibliography = EMPTY_BIBLIOGRAPHY,
   onAddSelection,
+  editorActionsRef,
 }: Props) {
   const { t } = useI18n();
   const { bindings: keyboardShortcuts } = useKeyboardShortcuts();
@@ -450,6 +464,44 @@ export const MonacoEditor = memo(function MonacoEditor({
 
     editor.focus();
   }, []);
+
+  useEffect(() => {
+    if (!editorActionsRef) return;
+    const instance = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editorReady || !instance || !monaco) {
+      editorActionsRef.current = null;
+      return;
+    }
+    editorActionsRef.current = {
+      insert: (text, point) => {
+        const model = instance.getModel();
+        if (!model || instance.getOption(monaco.editor.EditorOption.readOnly)) return false;
+        const dropPosition = point ? instance.getTargetAtClientPoint(point.x, point.y)?.position : null;
+        const lastLine = model.getLineCount();
+        const lastColumn = model.getLineMaxColumn(lastLine);
+        const range = dropPosition
+          ? new monaco.Selection(
+              dropPosition.lineNumber,
+              dropPosition.column,
+              dropPosition.lineNumber,
+              dropPosition.column,
+            )
+          : (instance.getSelection() ??
+            new monaco.Selection(lastLine, lastColumn, lastLine, lastColumn));
+        instance.pushUndoStop();
+        instance.focus();
+        const applied = instance.executeEdits("insert-image", [
+          { range, text, forceMoveMarkers: true },
+        ]);
+        if (applied) instance.pushUndoStop();
+        return applied;
+      },
+    };
+    return () => {
+      editorActionsRef.current = null;
+    };
+  }, [editorActionsRef, editorReady]);
 
   useEffect(() => {
     const instance = editorRef.current;

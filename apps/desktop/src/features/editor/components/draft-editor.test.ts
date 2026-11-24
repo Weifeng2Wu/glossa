@@ -7,6 +7,9 @@ import { DraftEditor } from "./draft-editor";
 vi.mock("./lazy", () => ({
   MonacoEditor: () => createElement("textarea", { "aria-label": "Source buffer" }),
 }));
+vi.mock("@/components/ui/toast", () => ({
+  useToast: () => ({ toast: vi.fn() }),
+}));
 vi.mock("next/dynamic", () => ({
   default: () => () => createElement("div", { "data-preview": true }),
 }));

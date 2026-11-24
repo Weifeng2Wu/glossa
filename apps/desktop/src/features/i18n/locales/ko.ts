@@ -279,6 +279,8 @@ export const ko: TranslationDictionary = {
     bold: "굵게",
     italic: "기울임꼴",
     link: "링크 삽입",
+    dropImages: "이미지를 놓아 Markdown에 삽입합니다",
+    imageInsertFailed: "이미지를 삽입할 수 없습니다: {error}",
     graphTitle: "지식 그래프",
     graphSummary: "문서 {nodes}개 · 링크 {links}개",
     graphLoading: "문서 링크를 읽는 중…",

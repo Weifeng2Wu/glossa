@@ -134,7 +134,7 @@ import { useToast } from "@/components/ui/toast";
 import { useI18n } from "@/features/i18n";
 import { shortcutLabel } from "@/features/settings";
 import { nestPdfNotes } from "@/features/workspace/lib/pdf-notes-tree";
-import { fileDisplayName, visualDocumentKind } from "@/lib/file-types";
+import { fileDisplayName, fileType, visualDocumentKind } from "@/lib/file-types";
 import type { FileNode } from "@/types/files";
 import type { PdfMetadata } from "@/types/papers";
 
@@ -672,6 +672,36 @@ function FileTreeInner({
   // Store handler refs to avoid stale closure issues with event listeners
   const handleMouseMoveRef = useRef<((e: MouseEvent) => void) | null>(null);
   const handleMouseUpRef = useRef<((e: MouseEvent) => void) | null>(null);
+  const editorDropTargetRef = useRef<HTMLElement | null>(null);
+
+  const findMarkdownDropTarget = useCallback(
+    (x: number, y: number, dragged: { path: string; type: "file" | "directory" } | null) => {
+      if (!dragged || dragged.type !== "file" || fileType(dragged.path) !== "image") return null;
+      const elements = document.elementsFromPoint(x, y);
+      for (const el of elements) {
+        const dropZone = el.closest<HTMLElement>('[data-markdown-image-drop="true"]');
+        if (dropZone) return dropZone;
+      }
+      return null;
+    },
+    [],
+  );
+
+  const updateEditorDropHighlight = useCallback((next: HTMLElement | null) => {
+    const previous = editorDropTargetRef.current;
+    if (previous === next) return;
+    if (previous) {
+      previous.dispatchEvent(
+        new CustomEvent("glossa-markdown-image-drag", { detail: { active: false } }),
+      );
+    }
+    if (next) {
+      next.dispatchEvent(
+        new CustomEvent("glossa-markdown-image-drag", { detail: { active: true } }),
+      );
+    }
+    editorDropTargetRef.current = next;
+  }, []);
 
   // Find drop target from mouse position
   const findDropTarget = useCallback(
@@ -786,6 +816,12 @@ function FileTreeInner({
         dragOverPath = target.path;
       }
 
+      const editorTarget = target
+        ? null
+        : findMarkdownDropTarget(e.clientX, e.clientY, draggedNodeRef.current);
+      updateEditorDropHighlight(editorTarget);
+      document.body.style.cursor = editorTarget ? "copy" : "grabbing";
+
       setDragState((prev) => ({
         ...prev,
         isDragging: true,
@@ -794,7 +830,7 @@ function FileTreeInner({
         mouseY: e.clientY,
       }));
     },
-    [findDropTarget, isValidDropTarget],
+    [findDropTarget, findMarkdownDropTarget, isValidDropTarget, updateEditorDropHighlight],
   );
 
   // Mouse up handler (attached to document during drag)
@@ -812,6 +848,7 @@ function FileTreeInner({
         document.removeEventListener("mouseup", handleMouseUpRef.current);
         handleMouseUpRef.current = null;
       }
+      updateEditorDropHighlight(null);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
 
@@ -826,6 +863,7 @@ function FileTreeInner({
       // Find drop target
       const target = findDropTarget(e.clientX, e.clientY);
       const canDrop = !!(target && isValidDropTarget(target.path, target.type));
+      const editorTarget = target ? null : findMarkdownDropTarget(e.clientX, e.clientY, dragged);
 
       // Snapshot dragged info before clearing refs
       const draggedSnapshot = draggedNodeRef.current;
@@ -836,12 +874,24 @@ function FileTreeInner({
       isDraggingRef.current = false;
       setDragState(initialDragState);
 
-      // Perform move if valid target
+      // Perform move if valid target, or insert image into Markdown editor
       if (target && canDrop && draggedSnapshot) {
         performMove(draggedSnapshot, target.path);
+      } else if (editorTarget && draggedSnapshot) {
+        editorTarget.dispatchEvent(
+          new CustomEvent("glossa-markdown-image-drop", {
+            detail: { path: draggedSnapshot.path, clientX: e.clientX, clientY: e.clientY },
+          }),
+        );
       }
     },
-    [findDropTarget, isValidDropTarget, performMove],
+    [
+      findDropTarget,
+      findMarkdownDropTarget,
+      isValidDropTarget,
+      performMove,
+      updateEditorDropHighlight,
+    ],
   );
 
   // Mouse down handler (called from NodeRenderer)

@@ -280,6 +280,8 @@ export const en = {
     bold: "Bold",
     italic: "Italic",
     link: "Insert link",
+    dropImages: "Drop images to insert into Markdown",
+    imageInsertFailed: "Could not insert image: {error}",
     graphTitle: "Knowledge graph",
     graphSummary: "{nodes} documents · {links} links",
     graphLoading: "Reading links…",

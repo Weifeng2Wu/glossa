@@ -10,14 +10,14 @@ export function PdfTranslationPanel({
   config,
   onSave,
   onClose,
-  writable,
+  writable = false,
   top = 56,
 }: {
   text: string;
   config: TranslationConfig;
-  onSave: (translation: string) => Promise<void>;
+  onSave?: (translation: string) => Promise<void>;
   onClose: () => void;
-  writable: boolean;
+  writable?: boolean;
   top?: number;
 }) {
   const { t } = useI18n();
@@ -58,6 +58,7 @@ export function PdfTranslationPanel({
     };
   }, [text, config, attempt]);
   async function save() {
+    if (!onSave) return;
     setSaving(true);
     setError("");
     try {
@@ -135,14 +136,16 @@ export function PdfTranslationPanel({
           </button>
         ) : (
           <>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              disabled={!result || !writable || saving || saved}
-              onClick={() => void save()}
-            >
-              {t("translation.saveNote")}
-            </button>
+            {onSave && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                disabled={!result || !writable || saving || saved}
+                onClick={() => void save()}
+              >
+                {t("translation.saveNote")}
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-sm"

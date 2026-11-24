@@ -1,6 +1,13 @@
 "use client";
 
-import { CodeIcon, ColumnsIcon, EyeIcon, LinkSimpleIcon, NoteIcon } from "@phosphor-icons/react";
+import {
+  CodeIcon,
+  ColumnsIcon,
+  EyeIcon,
+  LinkSimpleIcon,
+  NoteIcon,
+  TranslateIcon,
+} from "@phosphor-icons/react";
 import { convertFileSrc, isTauri } from "@tauri-apps/api/core";
 import { motion, useReducedMotion } from "framer-motion";
 import dynamic from "next/dynamic";
@@ -8,18 +15,28 @@ import {
   type ComponentProps,
   useCallback,
   useDeferredValue,
+  useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { useToast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useI18n } from "@/features/i18n";
+import {
+  readTranslationConfig,
+  TRANSLATION_STORAGE,
+  type TranslationConfig,
+} from "@/features/translation";
 import type { MarkdownLinkKind } from "@/lib/markdown-links";
 import { resolveMarkdownImage } from "../lib/markdown";
+import { pdfToolbarPosition } from "../lib/pdf-toolbar-position";
 import { useMarkdownImageDrop } from "../lib/use-markdown-image-drop";
+import { usePreviewTextSelection } from "../lib/use-preview-selection";
 import { MonacoEditor } from "./lazy";
 import type { MonacoEditorActions } from "./monaco-editor";
+import { PdfTranslationPanel } from "./pdf-translation-panel";
 
 const MarkdownContent = dynamic(() =>
   import("@/components/markdown/markdown-content").then((module) => module.MarkdownContent),
@@ -47,12 +64,88 @@ export function DraftEditor({
   const indicatorId = `draft-view-${useId()}`;
   const reducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLElement>(null);
+  const previewRef = useRef<HTMLElement>(null);
+  const selectionToolbarRef = useRef<HTMLDivElement>(null);
   const editorActionsRef = useRef<MonacoEditorActions | null>(null);
+  const [translation, setTranslation] = useState<{
+    text: string;
+    config: TranslationConfig;
+  } | null>(null);
+  const [selectionPosition, setSelectionPosition] = useState({ left: 8, top: 44 });
   const content = useDeferredValue(props.content ?? "");
   const contentRef = useRef(props.content ?? "");
   contentRef.current = props.content ?? "";
   const onContentChangeRef = useRef(props.onContentChange);
   onContentChangeRef.current = props.onContentChange;
+
+  const { selection: previewSelection, clear: clearPreviewSelection } = usePreviewTextSelection({
+    containerRef,
+    previewRef,
+    enabled: mode !== "source",
+  });
+
+  const startTranslation = useCallback(() => {
+    if (!previewSelection) return;
+    setTranslation({ text: previewSelection.text, config: readTranslationConfig() });
+    clearPreviewSelection();
+  }, [clearPreviewSelection, previewSelection]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const toolbar = selectionToolbarRef.current;
+    if (!previewSelection || !container || !toolbar) return;
+    const panel = container.getBoundingClientRect();
+    const size = toolbar.getBoundingClientRect();
+    const next = pdfToolbarPosition(
+      previewSelection.anchor,
+      panel,
+      { width: size.width || 96, height: size.height || 36 },
+      44,
+    );
+    setSelectionPosition((current) =>
+      current.left === next.left && current.top === next.top ? current : next,
+    );
+  }, [previewSelection]);
+
+  useEffect(() => {
+    if (!translation) return;
+    const handleConfigChange = () => {
+      setTranslation((current) =>
+        current ? { ...current, config: readTranslationConfig() } : null,
+      );
+    };
+    window.addEventListener(TRANSLATION_STORAGE, handleConfigChange);
+    return () => window.removeEventListener(TRANSLATION_STORAGE, handleConfigChange);
+  }, [translation]);
+
+  useEffect(() => {
+    if (!previewSelection && !translation) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (translation) setTranslation(null);
+        else clearPreviewSelection();
+        return;
+      }
+      if (
+        !previewSelection ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.key.toLowerCase() !== "t"
+      )
+        return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.closest("input, textarea, select, [contenteditable='true'], .monaco-editor") ||
+        target?.isContentEditable
+      )
+        return;
+      event.preventDefault();
+      startTranslation();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [clearPreviewSelection, previewSelection, startTranslation, translation]);
 
   const insertDroppedImage = useCallback((snippet: string, point?: { x: number; y: number }) => {
     if (editorActionsRef.current?.insert(snippet, point)) return;
@@ -149,6 +242,7 @@ export function DraftEditor({
         </div>
         {mode !== "source" && (
           <section
+            ref={previewRef}
             aria-label={t("markdown.preview")}
             className={`min-h-0 min-w-0 overflow-auto overscroll-contain ${mode === "split" ? "border-t border-border md:border-t-0 md:border-l" : ""}`}
           >
@@ -171,6 +265,39 @@ export function DraftEditor({
           </section>
         )}
       </div>
+      {previewSelection && (
+        <div
+          ref={selectionToolbarRef}
+          role="toolbar"
+          aria-label={t("translation.action")}
+          className="motion-pop absolute z-20 flex select-none items-center rounded-lg border border-border bg-background p-1 text-foreground shadow-lg"
+          style={selectionPosition}
+          onPointerDown={(event) => {
+            if (event.button === 0 && event.pointerType !== "touch") event.preventDefault();
+          }}
+        >
+          <Tooltip label={t("translation.action")} keys="T" side="top">
+            <button
+              type="button"
+              className="toolbar-icon-button flex items-center gap-1.5 px-2 text-xs"
+              aria-label={t("translation.action")}
+              aria-keyshortcuts="T"
+              onClick={startTranslation}
+            >
+              <TranslateIcon aria-hidden="true" className="size-4" />
+              <span>{t("translation.action")}</span>
+            </button>
+          </Tooltip>
+        </div>
+      )}
+      {translation && (
+        <PdfTranslationPanel
+          top={44}
+          text={translation.text}
+          config={translation.config}
+          onClose={() => setTranslation(null)}
+        />
+      )}
       {backlinks.length > 0 && (
         <nav
           aria-label={t("markdown.backlinks")}
